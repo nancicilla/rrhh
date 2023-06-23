@@ -1,0 +1,245 @@
+<?php
+/*
+ * Bonoliberalidad.php
+ *
+ * Version 0.$Rev: 244 $
+ *
+ * Creacion: 25/07/2022
+ *
+ * Ultima Actualizacion: $Date: 2015-03-17 10:26:19 -0400 (mar, 17 mar 2015) $:
+ * 
+ * Copyright 2015 SOLUR SRL.
+ * Monteagudo esq. Los Sauces, Sucre, Bolivia.
+ * Todos los derechos reservados.
+ *
+ * Este software es información confidencial y de propiedad de SOLUR SRL.
+ * Usted no podrá divulgar dicha Información Confidencial y la utilizará 
+ * únicamente de acuerdo con los términos del acuerdo de licencia con SOLUR SRL.
+ 
+ * This is the model class for table "general.bonoliberalidad".
+ *
+ * The followings are the available columns in table 'general.bonoliberalidad':
+ * @property string $id
+ * @property string $nombre
+ * @property string $gestion
+ * @property string $fechadesde
+ * @property string $fechahasta
+ * @property string $descripcion
+ * @property integer $asiento
+ * @property string $monto
+ * @property string $porcentaje
+ * @property integer $estado
+ * @property string $usuario
+ * @property string $fecha
+ * @property boolean $eliminado
+ */
+class Bonoespecial extends CActiveRecord
+{
+    /**
+     * Crea un ámbito por defecto que permite añadir condiciones al modelo
+     */
+    public $aportebeneficior,$aportebeneficioa,$empresasubempleadora;
+    public function defaultScope() {
+        return array(
+            'condition' => $this->getTableAlias(false, false) .
+            '.eliminado = false',
+        );
+    }
+    
+    /**
+     * @return string the associated database table name
+     */
+    public function tableName()
+    {
+            return 'general.bonoespecial';
+    }
+
+    /**
+     * @return array validation rules for model attributes.
+     */
+    public function rules()
+    {
+            // NOTE: you should only define rules for those attributes that
+            // will receive user inputs.
+            return array(
+                    array('asiento, estado', 'numerical', 'integerOnly'=>true),
+                    array('nombre', 'length', 'max'=>100),
+                    array('gestion, usuario', 'length', 'max'=>30),
+                    array('monto', 'length', 'max'=>12),
+                    array('porcentaje', 'length', 'max'=>15),
+                    array('nombre, monto,fechadesde,fechahasta', 'required', 'on' => array('insert', 'update')),
+                  
+                    array('fechadesde, fechahasta,fechapago,  fecha, eliminado', 'safe'),
+                    // The following rule is used by search().
+                    // @todo Please remove those attributes that should not be searched.
+                    array('id, nombre, gestion, fechadesde, fechahasta, asiento, monto, porcentaje, estado, usuario, fecha, eliminado', 'safe', 'on'=>'search'),
+            );
+    }
+
+    /**
+     * @return array relational rules.
+     */
+    public function relations()
+    {
+            // NOTE: you may need to adjust the relation name and the related
+            // class name for the relations automatically generated below.
+            return array(
+            );
+    }
+
+    /**
+     * @return array customized attribute labels (name=>label)
+     */
+    public function attributeLabels()
+    {
+            return array(
+                    'id' => 'ID',
+                    'nombre' => 'Nombre',
+                    'gestion' => 'Gestion',
+                    'fechadesde' => 'Fecha Desde',
+                    'fechahasta' => 'Fecha Hasta',
+                    'asiento' => 'Asiento',
+                    'monto' => 'Monto',
+                    'porcentaje' => 'Porcentaje',
+                    'estado' => 'Estado',
+                    'usuario' => 'Usuario',
+                    'fecha' => 'Fecha',
+                    'fechapago'=>'Fecha de Pago',
+                    'eliminado' => 'Eliminado',
+                    'empresasubempleadora'=>'Empresa Sub Empleadora',
+            );
+    }
+
+    /**
+     * Retrieves a list of models based on the current search/filter conditions.
+     *
+     * Typical usecase:
+     * - Initialize the model fields with values from filter form.
+     * - Execute this method to get CActiveDataProvider instance which will filter
+     * models according to data in model fields.
+     * - Pass data provider to CGridView, CListView or any similar widget.
+     *
+     * @return CActiveDataProvider the data provider that can return the models
+     * based on the search/filter conditions.
+     */
+    public function search()
+    {
+            // @todo Please modify the following code to remove attributes that should not be searched.
+
+            $criteria=new CDbCriteria;
+
+		$criteria->addSearchCondition('t.id',$this->id,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.nombre',$this->nombre,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.gestion',$this->gestion,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.fechadesde',$this->fechadesde,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.fechahasta',$this->fechahasta,true,'AND','ILIKE');
+		$criteria->compare('t.asiento',$this->asiento);
+		$criteria->addSearchCondition('t.monto',$this->monto,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.porcentaje',$this->porcentaje,true,'AND','ILIKE');
+		$criteria->compare('t.estado',$this->estado);
+		$criteria->addSearchCondition('t.usuario',$this->usuario,true,'AND','ILIKE');
+		 if ($this->fecha != Null) {
+		$criteria->addCondition("t.fecha::date = '" . $this->fecha. "'");
+		 }
+
+            return new CActiveDataProvider($this, array(
+                    'pagination'=>array(
+                        'pageSize'=> Yii::app()->user->getState('pageSize',Yii::app()->params['defaultPageSize']),
+                    ), 
+                    'criteria'=>$criteria,
+            ));
+    }
+
+    /**
+     * @return CDbConnection the database connection used for this class
+     */
+    public function getDbConnection()
+    {
+            return Yii::app()->rrhh;
+    }
+
+    /**
+     * Returns the static model of the specified AR class.
+     * Please note that you should have this exact method in all your CActiveRecord descendants!
+     * @param string $className active record class name.
+     * @return Bonoliberalidad the static model class
+     */
+    public static function model($className=__CLASS__)
+    {
+            return parent::model($className);
+    }
+
+
+    /**
+     *
+     * Sentencias entes de ejecutar metodo save
+     * Antes de guardar se cambia todos los campos  de tipo character
+     * varying y text a mayúsculas
+     * Si existe el campo fecha, este toma el valor de la fecha actual antes
+     * de almacenarse
+     * Si existe el campo usuario, toma el valor del usuario actual antes de
+     * almacenarse
+     * 
+     */
+    public function beforeSave() {
+		$this->nombre=strtoupper($this->nombre);
+		$this->gestion=strtoupper($this->gestion);
+		$this->usuario= Yii::app()->user->getName();
+		$this->fecha= new CDbExpression('NOW()');
+        return parent::beforeSave();            
+    }
+    public function RegistrarBono($id) {
+        $usuario= Yii::app()->user->getName();
+         Yii::app()->rrhh->createCommand("select public.registrar_bonoespecial($id,'$usuario'::varchar(30))")->queryScalar();       
+    }
+    /**
+     * 
+     * @param integer $id, id  relacionado con el Bono
+     * @return boolean, true= El Bono se encuentra con Planilla  y false= El Bono ya se encuentraconsolidado
+     */
+    public function MotrarOpcion($id) {
+        $corte = Bonoespecial::model()->find('t.id=' . SeguridadModule::dec($id));
+        if ($corte->estado == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    /**
+     * 
+     * @param integer[] $lista, lista de empleados  a los que se les pagara la Prima Anual
+     */
+    function GuaradarListaempleado($idbonoespecial, $lista) {
+        $cant = count($lista);
+        $usuario = Yii::app()->user->getName();
+        $ids = '';
+        for ($i = 1; $i <= $cant; $i++) {
+            $ids .= $lista[$i]['id'] . ',';
+        }
+        $ids .= '0';
+        Yii::app()->rrhh->createCommand("update  bonoespecialempleado set eliminado=true,usuario='$usuario' where idbonoespecial  =( select  idbonoespecial from bonoespecialempleado where id=" . $lista[1]['id'] . ") and id not in(" . $ids . ")")->execute();
+        Yii::app()->rrhh->createCommand("select recalcular_porcentaje_bonoespecial( $idbonoespecial)")->execute();
+
+        
+    }
+     public function guardarAporte($idbono, $lista,$estado) {
+        Yii::app()->rrhh
+            ->createCommand("update  aporbenebonoespecial set eliminado=true where estado=$estado and idbonoespecial=$idbono")
+            ->execute(); 
+        
+            for ($i=0;$i< count($lista);$i++) {
+          
+                $ba= new Aporbenebonoespecial;
+                $ba->idbonoespecial=$idbono;
+                $ba->estado=$estado;
+                $ba->idaportacionbeneficio=$lista[$i];
+                if (!$ba->save()) {
+                   print_r($ba);
+               }  
+           
+         
+        }
+    }
+
+
+}

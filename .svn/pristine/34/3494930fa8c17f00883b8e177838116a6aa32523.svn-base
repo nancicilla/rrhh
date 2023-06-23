@@ -1,0 +1,492 @@
+var Permiso = new Object();
+Permiso.__proto__ = SystemWindow;
+//variables
+Permiso.nameView = "Permiso";
+Permiso.url = "permiso";
+Permiso.init = function() {
+    var THIS = this;
+    if (this.action == 'create' || this.action == 'update' ||this.action=='Reportepermisosinconstancia'||this.action=='registrogrupal') {
+        this.buttonChange({ id: 'save', label: 'Guardar', key: 'G' });
+        
+    }
+};
+Permiso.options = function () {
+    this.setActions('create', {
+        WindowTitle: 'Registrar Permiso',
+        initButtons: 'save,cancel',
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    this.setActions('update', {        
+        WindowTitle: 'Modificar Permiso',
+        initButtons: 'save,cancel',
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+     this.setActions('registrogrupal', {        
+      WindowTitle: 'Registro Grupal Permiso c/Goce',
+      initButtons: 'save,cancel',
+       WindowWidth: 500,
+      WindowHeight:600,
+      WindowInitFunction: '',
+      WindowCloseFunction: '',
+      WindowMaxFunction: '',
+      WindowMinFunction: '',
+      layerEndOn: false,
+      ableBackWindow: true
+  });
+  
+ this.setActions('Reportepermisosinconstancia', {        
+        WindowTitle: 'Reporte Permiso Sin Constancia',
+        initButtons: 'save,cancel',
+        WindowWidth: 250,
+        WindowHeight: 350,
+        initButtons: 'descargar',
+        endButtons: 'descargar',
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    var options = {
+        WindowName: this.nameView,
+        WindowTitle: 'Permiso',
+        WindowWidth: 500,
+        WindowHeight: 600,
+        WindowInitFunction: '',
+        WindowCloseFunction: '',
+        WindowMaxFunction: '',
+        WindowMinFunction: '',
+        WindowOnBackground: true,
+        typeLoading: 'on'// on,off,onMain
+    };
+    return options;
+}
+Permiso.Constancia = function(id) {
+   $.ajax({
+           'type':'post',
+           'url':'rrhh/permiso/constancia',
+           'data':{id:id      
+        },    
+           success:function () {          
+           } ,        
+         
+           error:function () {
+               alert('ocurrio un error al cambiar el estado de la constancia...');
+           }
+    
+  }); 
+   admPermiso.search();
+}
+Permiso.Reportepermisosinconstancia = function() {
+    this.action = 'Reportepermisosinconstancia';
+   this.open(this.getOptions()); 
+}
+Permiso.beforeCreate = function () {
+    if ($('#' + Permiso.Id('tipo')).prop('checked')) {
+        console.log("2");
+        return this.Validacion2();
+    } else {
+        console.log("1");
+        return this.Validacion1();
+    }
+}
+Permiso.afterCreate = function () {
+    Permiso.printPermiso();  
+    Permiso.reload();
+}
+
+Permiso.beforeUpdate = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Permiso.afterUpdate = function () {
+    Permiso.closeWindow();
+}
+Permiso.registrogrupal = function () {
+  this.action = 'registrogrupal';
+  this.open(this.getOptions());
+}
+Permiso.beforeRegistrogrupal = function () {
+    var error = this.validarFormularioRegistrGrupal();//false es no existe error antes de actulizar formulario
+   
+    return error;
+}
+Permiso.afterRegistrogrupal = function () {
+    Permiso.closeWindow();
+}
+Permiso.beforeReportepermisosinconstancia = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Permiso.afterReportepermisosinconstancia = function () {
+    Permiso.closeWindow();
+}
+
+Permiso.Mostrar = function(elemento) {
+    if ($('#' + Permiso.Id('tipo')).prop('checked')) {
+        $('#' + Permiso.Id('conthoras')).show();
+        $('#' + Permiso.Id('ocularfecha')).hide();
+
+        $('label[for="' + Permiso.groupForm + '_fechai"]').html('Fecha');
+        
+        Permiso.Fechasminimas(1);
+
+    } else {
+        
+        $('#' + Permiso.Id('conthoras')).hide();
+        $('#' + Permiso.Id('ocularfecha')).show();
+        $('label[for="' + Permiso.groupForm + '_fechai"]').html('Desde');
+         Permiso.Fechasminimas(2);
+    }
+
+ 
+
+
+}
+
+Permiso.Fechasminimas=function(tipo){
+  $.ajax({     
+        'type':'post',
+        'url':'rrhh/'+this.url+'/damefechasminimas',
+        'data':{ ide:$('#'+Permiso.Id('idempleado')).val(), tipo:tipo},
+        success:function (resp) {  
+             var vec=jQuery.parseJSON(resp);
+             fechaa= new Date( vec.fechaminima);  
+                 $('#' + Permiso.Id("fechai")).datepicker("option", "minDate", vec.fechaminima);
+                 $('#' + Permiso.Id("fechaf")).datepicker("option", "minDate",vec.fechaminima);     
+               
+
+       },
+        error:function () {
+            alert('ocurrio un error ');
+        }
+
+    });   
+}
+Permiso.validarfechai = function(valor) {
+    var fi = valor.split('-');
+    fi = new Date(fi[2] + '-' + fi[1] + '-' + fi[0]); 
+    fimin= fi ;
+    fimin.setDate(fimin.getDate() + 1);
+    $('#' + Permiso.Id("fechaf")).datepicker("option", "minDate", fimin);
+ 
+    var ff = $('#' + Permiso.Id('fechaf')).val();
+    if (ff != '') {
+
+        var f = new Date(ff[2] + '-' + ff[1] + '-' + ff[0]);
+        ff = new Date(f);
+        if (ff < fi) {
+
+            $('#' + Permiso.Id('fechai')).val($('#' + Permiso.Id('fechaf')).val());
+            console.log("comparacion ff<fi");
+
+        }
+
+
+    }
+    $.ajax({
+        type: 'post',
+        url: 'rrhh/permiso/Mostrarhorario',
+        data: {
+            idempleado: $('#' + Permiso.Id('idempleado')).val(),
+            fecha: $('#' + Permiso.Id('fechai')).val()
+        },
+        success: function(resp) {
+            var vec = jQuery.parseJSON(resp);
+
+            $('#' + Permiso.Id('horastrabajador')).html(vec.horario);
+            $('#' + Permiso.Id('hi')).attr('data-horario', vec.hi);
+            $('#' + Permiso.Id('mi')).attr('data-horario', vec.mi);
+            $('#' + Permiso.Id('hs')).attr('data-horario', vec.hs);
+            $('#' + Permiso.Id('ms')).attr('data-horario', vec.ms);
+
+            
+        },
+        error: function(er) {
+            $('#' + Permiso.Id('horastrabajador')).html('');
+           
+        }
+    });
+}
+Permiso.validarfechaf = function(valor) {
+    var valor = valor.split("-");
+    var f = new Date(valor[2] + '-' + valor[1] + '-' + valor[0]);
+    if (fi != '') {
+        var fi = $('#' + Permiso.Id('fechai')).val().split('-');
+        fi = new Date(fi[2] + '-' + fi[1] + '-' + fi[0]);
+
+        if (fi > f) {
+
+            $('#' + Pemiso.Id('fechaf')).val($('#' + Permiso.Id('fechai')).val());
+        }
+    }
+
+}
+
+Permiso.validarHoras = function() {
+    
+    var canterror = 0;
+    var hi = $('#' + Permiso.Id('hi')).val();
+    var mi = $('#' + Permiso.Id('mi')).val()
+    var hs = $('#' + Permiso.Id('hs')).val();
+    var ms = $('#' + Permiso.Id('ms')).val();
+    if (parseInt(hi) < 10) {
+        hi = '0' + hi;
+
+    }
+    if (parseInt(mi) < 10) {
+        mi = '0' + mi;
+
+    }
+    if (parseInt(hs) < 10) {
+        hs = '0' + hs;
+
+    }
+    if (parseInt(ms) < 10) {
+        ms = '0' + ms;
+
+    }
+    var horai = hi + ':' + mi;
+    var horaip = $('#' + Permiso.Id('hi')).attr('data-horario') + ':' + $('#' + Permiso.Id('mi')).attr('data-horario');
+    var horasp = $('#' + Permiso.Id('hs')).attr('data-horario') + ':' + $('#' + Permiso.Id('ms')).attr('data-horario');
+    var horas = hs + ':' + ms;
+    if (horai >= horaip && horai < horasp) {
+        $('#' + Permiso.Id('hi')).css('background-color', '#fff');
+        $('#' + Permiso.Id('mi')).css('background-color', '#fff');
+
+
+    } else {
+        console.log(horai + '....' + horaip + '....' + horasp);
+        $('#' + Permiso.Id('hi')).css('background-color', '#f68c8c');
+        $('#' + Permiso.Id('mi')).css('background-color', '#f68c8c');
+        canterror += 1;
+    }
+    if (horas > horai && horas <= horasp) {
+        $('#' + Permiso.Id('hs')).css('background-color', '#fff');
+        $('#' + Permiso.Id('ms')).css('background-color', '#fff');
+
+
+    } else {
+        $('#' + Permiso.Id('hs')).css('background-color', '#f68c8c');
+        $('#' + Permiso.Id('ms')).css('background-color', '#f68c8c');
+        canterror += 1;
+    }
+
+    return canterror;
+
+}
+
+Permiso.Validacion2 = function() {
+
+    var error = false;
+    var cant = 0;
+    if ($('#' + Permiso.Id('idtipopermiso')).val() == '') {
+        ++cant;
+        $('#' + Permiso.Id('idtipopermiso')).css('background-color', '#f68c8c');
+    } else {
+
+        $('#' + Permiso.Id('idtipopermiso')).css('background-color', '#fff');
+    }
+    if ($('#' + Permiso.Id('fechai')).val() == '') {
+        ++cant;
+        $('#' + Permiso.Id('fechai')).css('background-color', '#f68c8c');
+    } else {
+        $('#' + Permiso.Id('fechai')).css('background-color', '#fff');
+    }
+    if ($('#'+Permiso.Id('empleado')).val()=='') {
+        $('#'+Permiso.Id('empleado')).css('background-color','#f68c8c');
+        cant+=1;
+
+    }else{
+        $('#'+Permiso.Id('empleado')).css('background-color','#fff');
+
+    }
+
+    cant += this.validarHoras();
+
+    if (cant > 0) {
+        Permiso.showMessageError('Revise los datos!! ');
+        error = true;
+    }
+    return error;
+}
+Permiso.Validacion1 = function() {
+
+    var error = false;
+    var cant = 0;
+    if ($('#' + Permiso.Id('fechai')).val() == '') {
+        ++cant;
+        $('#' + Permiso.Id('fechai')).css('background-color', '#f68c8c');
+    } else {
+        $('#' + Permiso.Id('fechai')).css('background-color', '#fff');
+    }
+    if ($('#' + Permiso.Id('fechaf')).val() == '') {
+        ++cant;
+        $('#' + Permiso.Id('fechaf')).css('background-color', '#f68c8c');
+    } else {
+        $('#' + Permiso.Id('fechaf')).css('background-color', '#fff');
+    }
+    if ($('#' + Permiso.Id('idtipopermiso')).val() == '') {
+        ++cant;
+        $('#' + Permiso.Id('idtipopermiso')).css('background-color', '#f68c8c');
+    } else {
+
+        $('#' + Permiso.Id('idtipopermiso')).css('background-color', '#fff');
+    }
+    if ($('#'+Permiso.Id('empleado')).val()=='') {
+        $('#'+Permiso.Id('empleado')).css('background-color','#f68c8c');
+        cant+=1;
+
+    }else{
+        $('#'+Permiso.Id('empleado')).css('background-color','#fff');
+
+    }
+
+    if (cant > 0) {
+        Permiso.showMessageError('Revise los datos!! ');
+        error = true;
+    }
+    return error;
+}
+Permiso.printPermiso=function(){
+     var url = this.url+'/imprimirPermisoAlCrear';
+    this.openUrl(url);
+}
+Permiso.Imprimirpermisosinconstancia=function(){
+    var cant = 0;
+    if ($('#' + Permiso.Id('fechai')).val() == '') {
+        ++cant;
+        $('#' + Permiso.Id('fechai')).css('background-color', '#f68c8c');
+    } else {
+        $('#' + Permiso.Id('fechai')).css('background-color', '#fff');
+    }
+    if ($('#' + Permiso.Id('fechaf')).val() == '') {
+        ++cant;
+        $('#' + Permiso.Id('fechaf')).css('background-color', '#f68c8c');
+    } else {
+        $('#' + Permiso.Id('fechaf')).css('background-color', '#fff');
+    }
+    if(cant==0){
+       var datos = this.prepareSend($('#' + this.groupForm).serialize());
+        var url = 'ImprimirReportePermisoSinConstancia?' + datos;
+        this.openUrl(url);  
+    }else{
+        Permiso.showMessageError('Revise los datos!! ');
+    }
+}
+
+Permiso.validarFormularioRegistrGrupal=function(){
+    var error=false;
+    var cant=0;
+    var grilla=this.getSGridView('gridEmpleados'); 
+    if ($('#'+Permiso.Id('fechai')).val()=='') {
+       error=true;
+       $('#'+Permiso.Id('fechai')).css('background-color','#f68c8c');             
+     } 
+    else{
+      $('#'+Permiso.Id('fechai')).css('background-color','#fff');
+    }
+   
+    if (parseFloat( $('#'+Permiso.Id('dias')).val())<=0) {
+       error=true;
+       $('#'+Permiso.Id('dias')).css('background-color','#f68c8c');             
+     } 
+    else{
+      $('#'+Permiso.Id('dias')).css('background-color','#fff');
+    }
+    if ($('#'+Permiso.Id('tipo')).val()=='') {
+       error=true;
+       $('#'+Permiso.Id('tipo')).css('background-color','#f68c8c');             
+     } 
+    else{
+      $('#'+Permiso.Id('tipo')).css('background-color','#fff');
+    }
+    if ($('#'+Permiso.Id('jornada')).val()=='') {
+       error=true;
+       $('#'+Permiso.Id('jornada')).css('background-color','#f68c8c');             
+     } 
+    else{
+      $('#'+Permiso.Id('jornada')).css('background-color','#fff');
+    }
+    if ($('#'+Permiso.Id('idtipopermiso')).val()=='') {
+       error=true;
+       $('#'+Permiso.Id('idtipopermiso')).css('background-color','#f68c8c');             
+     } 
+    else{
+      $('#'+Permiso.Id('idtipopermiso')).css('background-color','#fff');
+    }   
+     for (var f = 1; f <= grilla.rows; f++) {  
+      if ( grilla.row(f).get('nombrecompleto')!='' ){
+          if (grilla.row(f).get('tipo')=='3') {
+            ++cant;
+            grilla.row(f).attributes('nombrecompleto', {tooltip: '', validate: false});
+
+            }else{
+             grilla.row(f).attributes('nombrecompleto', {tooltip: '', validate: true});
+
+            }
+      }
+ }
+   if(error==true || cant>0){
+        Permiso.showMessageError('Revise sus datos!'); 
+        error=true;
+   }
+   return error;
+}
+Permiso.mostrarOpcionregistrogrupal=function(){
+    dias=$('#'+Permiso.Id('dias')).val();
+    tipo=$('#'+Permiso.Id('tipo')).val();
+    ndias=parseFloat( $('#'+Permiso.Id('dias')).val());
+    if($('#'+Permiso.Id('fechai')).val()!=''&& tipo!=''&& ndias>0 &&  dias!=''&& $('#'+Permiso.Id('jornada')).val()!='') {
+           $('#'+Permiso.Id('mensaje')).html('');
+                $.ajax({
+               'type':'post',
+               'url':'rrhh/permiso/listaempleadosregistrogrupal',
+               'data':{fecha:$('#'+Permiso.Id('fechai')).val(),tipo:tipo, dias:ndias,jornada:$('#'+Permiso.Id('jornada')).val(),nombre: Permiso.groupForm},
+               success:function (resp) {          
+                $('#'+Permiso.Id('contempleados')).html(resp);       
+
+              },
+               error:function () {
+                   alter('ocurrio un error al optener listado empleados...');
+               }
+           }); 
+   
+  
+}else{
+        var grilla=this.getSGridView('gridEmpleados');    
+    console.log(grilla);
+     for (var f = 1; f <= grilla.rows; f++) {  
+     
+         grilla.delRow(1);
+      
+ }
+     $('#'+Permiso.Id('tipo>option:first')).prop('selected','selected');
+
+    $('#'+Permiso.Id('mensaje')).html('<div class="alert alert-info"><p>Previamente se debe seleccionar Fecha , Cantidad de dias y la Jornada  </p></div>');
+
+}
+}
+Permiso.ResaltarObservados=function(){
+   
+   var grilla=this.getSGridView('gridEmpleados'); 
+   
+    var cant=0;
+     for (var f = 1; f <= grilla.rows; f++) {  
+      if ( grilla.row(f).get('nombrecompleto')!='' ){
+          if (grilla.row(f).get('tipo')=='3') {
+            ++cant;           
+            grilla.row(f).attributes('nombrecompleto', {tooltip: '', validate: false});
+
+            }else{
+             grilla.row(f).attributes('nombrecompleto', {tooltip: '', validate: true});
+
+            }
+      }
+ } 
+ if (cant>0){
+     $('#'+Permiso.Id('mensaje')).html('<div class="alter alert-info">El personal resaltodo ,tiene permiso asignado en el rango de hora-dia ... </div>');
+ }else{
+     $('#'+Permiso.Id('mensaje')).html('');
+
+ }
+}

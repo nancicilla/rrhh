@@ -1,0 +1,122 @@
+<?php
+/* @var $this BonoController */
+/* @var $model Bono */
+/* @var $form CActiveForm */
+?>
+
+<div class="form">
+<?php $form=$this->beginWidget('CActiveForm', array(
+    'focus'=>array($model,'descripcion')
+)); ?>
+    <div class="formWindow">
+    
+	<div class="row">
+		<?php
+                
+                echo $form->labelEx($model,'nombre',array('label'=>'Nombre')); ?>
+		<?php echo $form->textField($model,'nombre',array('placeholder'=>'Nombre del Bono..','style' => 'text-transform: uppercase')); ?>
+	</div>
+         <div class="row">
+        <?php echo $form->labelEx($model,'esagrupador'); ?>
+         <?php  echo $form->checkBox($model,'esagrupador',array('onchange'=>'Bono.mostrar()')); ?>  
+     
+    </div>
+        <div style="display:<?php  if ($model->esagrupador==false)
+            {echo'display-block';}else{echo'none;';}?>" <?php echo 'id="'.System::Id('contenedorAgrupador').'"';?>>
+      <?php echo $form->labelEx($model,'idbonopadre',array('label'=>'Agrupar en...')); ?>
+        <?php echo $form->dropDownList($model,'idbonopadre',CHtml::listData(Bono::model()->findAll('t.esagrupador=true '.$consulta),'id','nombre'),array('empty'=>'','onchange'=>'Bono.MostrarAportaciones()')); ?>
+    </div>
+        <div class="row" <?php echo 'id="'.System::Id('contenedorOpciones').'"';?>>
+         <div class="row">
+        <?php echo $form->labelEx($model,'enplanilla',array('label'=>'Mostrar en Planilla?')); ?>
+         <?php  echo $form->checkBox($model,'enplanilla'); ?>  
+     
+    </div>
+    <div class="row">
+        <?php echo $form->labelEx($model,'seprorratea',array('label'=>'Se prorratea?')); ?>
+         <?php  echo $form->checkBox($model,'seprorratea'); ?>  
+     
+    </div>
+    
+        <div class="row">
+        <?php echo $form->labelEx($model,'pagounico',array('label'=>'Pago Único?')); ?>
+         <?php  echo $form->checkBox($model,'pagounico',array('onchange'=>'Bono.MostrarFechaMesPago()')); ?>  
+     
+    </div>
+    </div>
+        
+        
+   <div style="display:<?php  if ($model->pagounico==true)
+       {echo'display-block';}else{echo'none;';}?>" <?php echo 'id="'.System::Id('contenedorFechaMesPago').'"';?>>
+      <?php echo $form->labelEx($model,'fechamespago'); ?>
+           <div class="row">
+       
+        <?php
+        echo $this->widget('zii.widgets.jui.CJuiDatePicker', array(
+            'model' => $model,
+            'attribute' => 'fechamespago',
+            'name' => 'fechamespago',
+            'value' => $model->fechamespago,
+            'language' => 'es',
+            // additional javascript options for the date picker plugin
+            'options' => array(
+                'showAnim' => 'slideDown',
+                'showButtonPanel' => true,
+                'changeMonth' => true,
+                'changeYear' => true,
+                'dateFormat' => 'dd-mm-yy',
+                'minDate' => $fechaminima,
+            ),
+            
+                ), true)
+        ?>
+
+    </div>
+    </div>
+    
+	
+         <div class="row">
+     <?php
+      if ($model->scenario=='update') {
+          echo $form->labelEx($model, 'estado');
+          echo $form->checkBox($model,'estado');
+      }
+     ?>
+ </div>
+        <div style="display:none;" <?php echo 'id="'.System::Id('contenedorAportaciones').'"';?>>
+      <?php echo $form->labelEx($model,'aportebeneficio',array('label'=>'Asignar Aporte-Beneficio')); ?>
+       <?php
+        $criteria=new CDbCriteria;
+        $criteria->addCondition("t.idaportacionbeneficiopadre is null and t.tipo in(2,3) ");
+        if ($model->scenario=='update'){
+            $criteria->addCondition("t.id not in( select idaportacionbeneficio from bonoaportaciones where  eliminado=false and idbono in ( select  idbonopadre from general.bono where eliminado=false  and  id=".$model->id.")) ");
+        }
+        $criteria->order='t.nombre asc';
+        $this->widget('ext.select2.ESelect2', array(
+                'id' => 'aportebeneficio',
+                'name' => 'aportebeneficio',
+                'value' => $laportebeneficio,
+                'data' => CHtml::listData(Aportacionbeneficio::model()->findAll($criteria), 'id', 'nombre'),
+                'htmlOptions' => array(
+                    'multiple' => 'multiple',
+                    'style' => 'width:100%;'
+                ),
+                'options' => array(
+                    'placeholder' => 'Seleccione...',
+                    'allowClear' => true,
+                ),
+            ));
+            ?>
+        </div>
+
+     
+    </div>
+    <?php
+    echo System::Buttons(array(
+        'nameView' => 'Bono',
+        'buttons' => array()
+    ));
+    ?> 
+<?php $this->endWidget(); ?>
+
+</div><!-- form -->

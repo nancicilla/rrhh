@@ -1,0 +1,178 @@
+
+<?php
+/* @var $this PersonaController */
+/* @var $model Persona */
+/* @var $form CActiveForm */
+?>
+<style> 
+    .resaltar{padding: 0px 0px !important;
+              margin: 0px 0px !important;
+		
+			color:black;
+			background: linear-gradient(25deg,red ,red, #ffffff,red,red );
+			background-size: 400% 400%;
+			position: relative;
+			animation: cambiar  0.55s ease-out infinite;
+		}
+		
+
+		@keyframes cambiar{
+			0%{background-position: 0% 50%;}
+			50%{background-position: 100%  0%;}
+			100%{background-position: 0% 50%;}
+		}
+</style>
+<div class="form">
+<?php $form=$this->beginWidget('CActiveForm', array(
+    'focus'=>array($model,'ci'),
+    'htmlOptions'=>array('enctype'=>'multipart/form-data')
+)); ?>
+<?php Yii::app()->clientScript->registerCoreScript('jquery'); ?>
+     <div class="formWindow">
+           
+        <?php
+       
+        
+        if ($model->scenario!='update') {
+            # code...
+        
+                echo System::widgetTabs(array(
+            'nameView' => 'Persona',
+            'height' => 510,
+            'tabs' => array(
+                'Datos P.' => array('id' => 'Datos',
+                    'content' => $this->renderPartial('_datospersonales', array('model' => $model,'direccion'=>$direccion, 'form' => $form), true),
+                    'titleWidth' => 90,
+                    'active' => true,
+                ),
+                'Fotografía' => array('id' => 'imagenes',
+                    'content' => $this->renderPartial('_imagen', array('fotoPersona' => $fotoPersona), true),
+                    'titleWidth' => 80, 'active' => true
+                ),
+                ' Referencias ' => array('id' => 'referencia',
+                    'content' => $this->renderPartial('_referencia', array('referencia' => 'referencia','direccion'=>$direccion,'model'=>$model,'form'=>$form), true),
+                    'titleWidth' => 100,
+                ),
+                'Contrato' => array('id' => 'contrato',
+                    'content' => $this->renderPartial('_contrato', array('referencia' => 'referencia','secciones'=>$secciones,'modelc'=>$modelc,'listahorario'=>$listahorario,'puestotrabajos'=>$puestotrabajos,'model'=>$model,'modelns'=>$modelns,'modelmp'=>$modelmp,'form'=>$form,'sueldos'=>$sueldos,'modele'=>$modele,'modelhistorial'=>$modelhistorial,'modificar'=>0,'historialContrato'=>$historialContrato), true),
+                    'titleWidth' => 100,
+                ),
+              
+                'Dependientes'=>array('id' => 'dependientes',
+                    'content' => $this->renderPartial('_dependiente', array('model'=>$model,'modeld'=>$modeld,'form'=>$form), true),
+                    'titleWidth' => 100,),
+                'Porcentaje'=>array('id' => 'Porcentaje',
+                    'content' => $this->renderPartial('_porcentajespago', array('model'=>$model,'lista'=>$lista,'form'=>$form), true),
+                    'titleWidth' => 80,),
+               
+                '<label class="resaltar">Evaluación</label>'=>array('id' => '',
+                    'content' => $this->renderPartial('_evaluacion', array('model'=>$model,'modele'=>$modele,'form'=>$form), true),
+                    'titleWidth' => 80,'class'=>'resaltar'),
+            ),
+        ));
+            }else{
+              
+         if(date($modelmp->fechaini)<=date('Y-m-d')){
+             $modificar=0;
+             
+         } else {
+             
+         
+             $modificar=1;
+         }
+           if($modificar==0){
+               echo System::widgetTabs(array(
+            'nameView' => 'Persona',
+            'height' => 500,
+            'tabs' => array(
+                'Datos P.' => array('id' => 'Datos',
+                    'content' => $this->renderPartial('_datospersonales', array('model' => $model,'direccion'=>$direccion, 'form' => $form), true),
+                    'titleWidth' => 110,
+                    'active' => true,
+                ),
+                'Fotografía' => array('id' => 'imagenes',
+                    'content' => $this->renderPartial('_imagen', array('fotoPersona' => $fotoPersona), true),
+                    'titleWidth' => 80, 'active' => true
+                ),
+                ' Referencias ' => array('id' => 'referencia',
+                    'content' => $this->renderPartial('_referencia', array('referencia' => 'referencia','direccion'=>$direccion,'model'=>$model,'form'=>$form), true),
+                    'titleWidth' => 90,
+                ),
+                 'Contrato' => array('id' => 'contrato',
+                    'content' => $this->renderPartial('_contrato', array('referencia' => 'referencia','secciones'=>$secciones,'modelc'=>$modelc,'listahorario'=>$listahorario,'puestotrabajos'=>$puestotrabajos,'model'=>$model,'modelns'=>$modelns,'modelmp'=>$modelmp,'form'=>$form,'sueldos'=>$sueldos,'modele'=>$modele,'modelhistorial'=>$modelhistorial,'modificar'=>$modificar,'historialContrato'=>$historialContrato), true),
+                    'titleWidth' => 100,
+                ),
+                'Lista Bonos' => array('id' => 'listabono',
+                    'content' => $this->renderPartial('_listabono', array('listabono' => $listabono,'tipo'=>array(),'model'=>$model,'form'=>$form), true),
+                    'titleWidth' => 100,
+                ),
+                 'Horario' => array('id' => 'horario',
+                    'content' => $this->renderPartial('_horario', array('listahorario'=>$listahorario,'model'=>$model,'form'=>$form,'modelmp'=>$modelmp), true),
+                    'titleWidth' => 100,
+                ),
+                'Dependientes'=>array('id' => 'dependientes',
+                    'content' => $this->renderPartial('_dependiente', array('model'=>$model,'modeld'=>$modeld,'form'=>$form), true),
+                    'titleWidth' => 100,),'Porcentaje'=>array('id' => 'Porcentaje',
+                    'content' => $this->renderPartial('_porcentajespago', array('model'=>$model,'lista'=>$lista,'form'=>$form), true),
+                    'titleWidth' => 80,)
+                ,
+               
+                '<label class="resaltar">Evaluación</label>'=>array('id' => '',
+                    'content' => $this->renderPartial('_evaluacion', array('model'=>$model,'modele'=>$modele,'form'=>$form), true),
+                    'titleWidth' => 80,'class'=>'resaltar'),
+               
+            ),
+           ));}else{
+                  echo System::widgetTabs(array(
+            'nameView' => 'Producto',
+            'height' => 500,
+            'tabs' => array(
+                'Datos P.' => array('id' => 'Datos',
+                    'content' => $this->renderPartial('_datospersonales', array('model' => $model,'direccion'=>$direccion, 'form' => $form), true),
+                    'titleWidth' => 110,
+                    'active' => true,
+                ),
+                'Fotografía' => array('id' => 'imagenes',
+                    'content' => $this->renderPartial('_imagen', array('fotoPersona' => $fotoPersona), true),
+                    'titleWidth' => 80, 'active' => true
+                ),
+                ' Referencias ' => array('id' => 'referencia',
+                    'content' => $this->renderPartial('_referencia', array('referencia' => 'referencia','direccion'=>$direccion,'model'=>$model,'form'=>$form), true),
+                    'titleWidth' => 90,
+                ),
+                  'Contrato' => array('id' => 'contrato',
+                    'content' => $this->renderPartial('_contrato', array('referencia' => 'referencia','secciones'=>$secciones,'modelc'=>$modelc,'listahorario'=>$listahorario,'puestotrabajos'=>$puestotrabajos,'model'=>$model,'modelns'=>$modelns,'modelmp'=>$modelmp,'form'=>$form,'sueldos'=>$sueldos,'modele'=>$modele,'modelhistorial'=>$modelhistorial,'modificar'=>$modificar,'historialContrato'=>$historialContrato), true),
+                    'titleWidth' => 100,
+                ),
+                'Lista Bonos' => array('id' => 'listabono',
+                    'content' => $this->renderPartial('_listabono', array('listabono' => $listabono,'tipo'=>array(),'model'=>$model,'form'=>$form), true),
+                    'titleWidth' => 100,
+                ),
+                
+                'Dependientes'=>array('id' => 'dependientes',
+                    'content' => $this->renderPartial('_dependiente', array('model'=>$model,'modeld'=>$modeld,'form'=>$form), true),
+                    'titleWidth' => 100,),
+                'Porcentaje'=>array('id' => 'Porcentaje',
+                    'content' => $this->renderPartial('_porcentajespago', array('model'=>$model,'lista'=>$lista,'form'=>$form), true),
+                    'titleWidth' => 80,),
+               
+                '<label class="resaltar">Evaluación</label>'=>array('id' => '',
+                    'content' => $this->renderPartial('_evaluacion', array('model'=>$model,'modele'=>$modele,'form'=>$form), true),
+                    'titleWidth' => 80,'class'=>'resaltar'),
+               
+            ),
+           )); 
+               
+           }
+
+            }
+        ?> 
+    </div>   
+    <?php
+    echo System::Buttons(array(
+        'nameView' => 'Persona',
+        'buttons' => array()
+    ));
+    ?> 
+<?php $this->endWidget();  ?>
+</div><!-- form -->

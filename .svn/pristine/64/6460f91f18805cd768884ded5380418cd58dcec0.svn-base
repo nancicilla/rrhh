@@ -1,0 +1,274 @@
+var Bono = new Object();
+Bono.__proto__ = SystemWindow;
+//variables
+Bono.nameView = "Bono";
+Bono.url = "bono";
+Bono.init = function () {
+     var THIS=this;
+    if (this.action == 'create'||  this.action === 'Asignarbono' || this.action == 'update') {
+      this.buttonChange({id: 'save', label: 'Guardar', key: 'G'});
+           
+       if(this.action == 'Asignarbono' )
+        {
+            Bono.subirArchivoExcel();
+           
+        }
+    }
+   
+
+     
+};
+Bono.options = function () {
+    this.setActions('create', {
+        WindowTitle: 'Crear Bono',
+        initButtons: 'save,cancel',
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    this.setActions('update', {        
+        WindowTitle: 'Modificar Bono',
+        initButtons: 'save,cancel',
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+   this.setActions('Asignarbono', {         
+        WindowWidth: 550,
+        WindowHeight: 466,     
+        WindowTitle: 'Asignación de Bono',
+        initButtons: 'save,cancel',
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+        
+      
+    var options = {
+        WindowName: this.nameView,
+        WindowTitle: 'Bono',
+        WindowWidth:350,
+        WindowHeight:500,
+        WindowInitFunction: '',
+        WindowCloseFunction: '',
+        WindowMaxFunction: '',
+        WindowMinFunction: '',
+        WindowOnBackground: true,
+        typeLoading: 'on'// on,off,onMain
+    };
+    return options;
+}
+Bono.Asignarbono=function (options) {
+    this.action = 'Asignarbono';
+    this.open(this.getOptions(options));
+}
+
+Bono.beforeCreate = function () {
+    var error = false;//false es no existe error antes de crear formulario
+    return error;
+}
+Bono.afterCreate = function () {
+    Bono.reload();
+}
+
+Bono.beforeUpdate = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Bono.afterUpdate = function () {
+    Bono.closeWindow();
+}
+Bono.beforeAsignarbono = function () {
+  var error =this.validar();// this.validarGrilla();//false es no existe error antes de crear formulario
+    return error;
+}
+Bono.afterAsignarbono = function () {
+    Bono.closeWindow();
+}
+Bono.validar=function () {
+   var error=false;
+   var cant=0;
+   var grilla=this.getSGridView('gridEmpleado'); 
+   for (var i = 1; i<=grilla.rows ; i++) {
+  
+      if (grilla.row(i).get('empleado')=='' && grilla.row(i).get('monto')>0) {
+      ++cant;
+      grilla.row(i).attributes('empleado', { validate: false});
+     
+      }
+      else{
+      
+       
+        for (var d =1;d< i ; d++) {
+           if (grilla.row(d).get('ci')==grilla.row(i).get('ci')) {
+              
+            ++cant;
+            grilla.row(d).attributes('empleado', { validate: false});
+            grilla.row(i).attributes('empleado', { validate: false});
+           
+           }
+        }
+      
+       
+      }
+     if(grilla.row(i).get('estado')=='2'){
+                ++cant;
+              
+            }
+   
+    if ($("#pmonto").length <= 0) {
+   
+      if (grilla.row(i).get('monto')<=0 && grilla.row(i).get('empleado')!='') {
+        ++cant;
+       grilla.row(i).attributes('monto', { validate: false});
+
+
+      }else{
+        grilla.row(i).attributes('monto',{validate:true});
+      }
+
+    }
+    }
+   if (cant>0) {
+    error=true;
+     Bono.showMessageError('Verifique sus datos!! '); 
+   }
+
+    
+   return error;
+}
+Bono.mostrar=function(){
+    
+    if ($('#'+Bono.Id('esagrupador')).prop('checked')==false) {
+     $('#'+Bono.Id('contenedorAgrupador')).show();
+     
+     
+    }else{
+ $('#'+Bono.Id('contenedorAgrupador')).hide();
+
+ 
+    }
+}
+Bono.sumarTotalBono=function(){
+   
+    var grilla=this.getSGridView('gridEmpleado');  
+    var cantidad=grilla.rows;
+    if (cantidad==1){
+        if(grilla.row(1).get('empleado')==''){
+            cantidad=0;
+        }
+    }
+   
+   
+    this.gridSearchVars('gridEmpleado', '&idbono=' + $('#'+Bono.Id('id')).val()); 
+   
+    var total=0;
+   for (var i = 1; i<=grilla.rows ; i++) {
+    
+   
+      if (grilla.row(i).get('monto')>0) {
+       total+=grilla.row(i).get('monto');
+       grilla.row(i).attributes('monto', { validate: true});
+
+      }else{
+        grilla.row(i).attributes('monto',{validate:false});
+      }
+       if (grilla.row(i).get('estado')=='-1') {
+                       
+            grilla.row(i).attributes('empleado', {tooltip: '', validate: true});
+            grilla.row(i).attributes('ci', {tooltip: '', validate: true});
+            grilla.row(i).attributes('monto', {tooltip: '', validate: true});
+
+            }else{
+             grilla.row(i).attributes('empleado', {tooltip: '', validate: false});
+            grilla.row(i).attributes('ci', {tooltip: '', validate:false});
+            grilla.row(i).attributes('monto', {tooltip: '', validate: false});
+
+            }
+
+   
+    }
+    $('#'+Bono.Id('spanTotalBono')).html( parseFloat( total).toFixed( 2 )+' Bs.');
+}
+Bono.subirArchivoExcel = function() {
+    var element=this.ById('fileExcel');
+    element.parentElement.style.padding=null;
+    var archivosExcel=element.innerHTML;
+    
+    element.innerHTML='<div class="pedidoArchivosExcel" ></div>'+
+                      '<div class="">'+archivosExcel+'</div>';
+    
+    
+    element.style.width="200px";
+    element.style.height="20px";
+    element.style.top="416px";
+    
+    $('#'+element.id).on('mousemove', function() {
+        $(this).css('height', '46px');
+    });
+    
+    $('#'+element.id).on('mouseout', function() {
+        $(this).css('height', '20px');
+    });
+    
+    var url=this.urlIni+this.url+'/subirArchivoExcel?groupForm='+this.groupForm;
+    
+    var THIS=this;
+    var options = {iframe: {url: url}};
+    // Attach FileDrop to an area ('zone' is an ID but you can also give a DOM node):
+    var zone = new FileDrop(element.id, options);
+    
+    // Do something when a user chooses or drops a file:
+    zone.event('send', function (files) {
+        // Depending on browser support files (FileList) might contain multiple items.
+        files.each(function (file) {
+          // React on successful AJAX upload:
+            file.event('done', function (xhr) {
+                var errorFormato=$('<div>'+xhr.responseText+'</div>').find("div.errorFormato")[0];
+                
+                THIS.set('archivoexcel',this.name); 
+                $('#'+THIS.Id('fileExcel')).find('.pedidoArchivosExcel')[0].innerHTML=this.name;
+                THIS.ById('contenedorListaDeducciones').innerHTML=xhr.responseText;
+               THIS.sumarTotalBono();
+               THIS.HabilitarEliminar();
+                if(errorFormato.innerHTML!=''){
+                    var message='<div style="background:#1d6fb8;color:#ffffff; margin-top:10px;" >REVISAR FORMATO DE EXCEL</div><br>'+errorFormato.innerHTML;
+                    bootbox.alert(message);
+                }
+            });
+            
+            file.sendTo(url);
+
+        });
+    });
+    
+    zone.event('iframeDone', function (xhr) {
+      alert('Done uploading via <iframe>, response:\n\n' + xhr.responseText);
+    });
+
+}
+Bono.MostrarAportaciones=function(){
+    if ($('#'+Bono.Id('enplanilla')).prop('checked')==false && $('#'+Bono.Id('idbonopadre')).val()=='')  {
+     $('#'+Bono.Id('contenedorAportaciones')).show();
+     
+     
+    }else{
+ $('#'+Bono.Id('contenedorAportaciones')).hide();
+
+ 
+    }
+}
+Bono.HabilitarEliminar=function(){
+    var grilla=this.getSGridView('gridEmpleado');  
+     SGridView.inClick=true;
+     SGridView.addRow(Bono.groupForm+'gridEmpleado');
+     SGridView.selectRow(grilla.row(grilla.rows));
+     SGridView.delRow();
+}
+Bono.MostrarFechaMesPago=function(){
+    if ($('#'+Bono.Id('pagounico')).prop('checked')==true )  {
+        $('#'+Bono.Id('contenedorFechaMesPago')).show();   
+     
+    }else{
+        $('#'+Bono.Id('contenedorFechaMesPago')).hide();
+
+ 
+    }
+}

@@ -1,0 +1,20 @@
+<?php
+/* @var $this DefaultController */
+
+
+?>
+<div class="container">
+	<div class="offset-12">
+		<div id="content">
+<h1>Módulo de RRHH </h1>
+<h3>Cumpleañeros </h3>
+
+<?php
+     echo  Yii::app()->rrhh
+            ->createCommand("select cumpleanieros() as sms ")
+            ->queryAll()[0]['sms'];
+
+		?>
+		</div>
+	</div>
+</div>

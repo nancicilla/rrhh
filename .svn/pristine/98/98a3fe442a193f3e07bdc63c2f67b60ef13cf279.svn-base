@@ -1,0 +1,407 @@
+
+
+<div id="mostrar"></div>
+<div class="row" id="contc">
+
+<div class="row" >
+  <div class="column">
+    <?php echo $form->labelEx($model,'unidad',array('label'=>'Unidad')); ?>
+    <div  id="contu">
+        
+        <?php echo $form->dropDownList($model,'unidad',CHtml::listData(Unidad::model()->findAll(),'id','nombre'),array('empty'=>'','onchange'=>'Puestotrabajo.listaArea(this.value,Persona.Id("area"),Persona.Id("idseccion"),Persona.Id("idpuestotrabajo"))','disabled'=>($model->scenario=='update' && $modificar==0)?true:false));?>
+    </div>
+    </div>
+ <div class="column">
+	<?php echo $form->labelEx($model,'area'); ?>
+	<div  id="conta">
+		
+		<?php 
+        if ($model->scenario=='update' ) {
+              echo $form->hiddenField($modele,'id'); 
+                echo $form->dropDownList($model,'area',CHtml::listData(Area::model()->findAll('t.idunidad='.$model->unidad->id),'id','nombre'),array('empty'=>'','onchange'=>'Puestotrabajo.listaSeccion(Persona.Id("unidad"),this.value,Persona.Id("idseccion"))','disabled'=>($model->scenario=='update' && $modificar==0)?true:false));
+
+
+        }
+       
+        else{
+                 echo $form->dropDownList($model,'area',CHtml::listData(array(),'id','nombre'),array('empty'=>'','onchange'=>'Puestotrabajo.listaSeccion(Persona.Id("unidad"),this.value,Persona.Id("idseccion"))'));
+
+
+        }
+   
+        ?>
+	</div>
+    </div>
+    <div class="column">
+		<?php echo $form->labelEx($model,'idseccion',array('label'=>'Sección')); ?>
+		<?php 
+
+        echo $form->dropDownList($model,'idseccion',CHtml::listData($secciones,'id','nombre'),array('empty'=>'','onchange'=>'Persona.listaPuestotrabajo(this.value,Persona.Id("idpuestotrabajo"))','disabled'=>($model->scenario=='update' && $modificar==0) ?true:false)); ?>
+	</div>
+        <div class="column">
+    <?php 
+           
+    echo $form->labelEx($historialContrato,'idpuestotrabajo',array('label'=>'Puesto de Trabajo')); ?>
+    <div  id="conta">
+        
+        <?php 
+             
+        echo $form->dropDownList($historialContrato,'idpuestotrabajo',CHtml::listData($puestotrabajos,'id','nombre'),array('empty'=>'','data-v'=>'','disabled'=>($model->scenario=='update' && $modificar==0)?true:false));?>
+    </div>
+    </div>
+    </div>
+    <div class="row">
+
+    <div class="column">
+        <?php echo $form->labelEx($modelc,'idtipocontrato'); ?>
+        <?php echo $form->dropDownList($modelc,'idtipocontrato',CHtml::listData(Tipocontrato::model()->findAll(),'id','nombre'),array('empty'=>'','data-v'=>'','disabled'=>($model->scenario=='update' && $modificar==0)?true:false)); ?>
+    </div>
+     <div class="column">
+            <?php                 
+                echo $form->label($modelhistorial, 'fechaantiguedad');
+                echo $this->widget('zii.widgets.jui.CJuiDatePicker', array(
+                    'model' => $modelhistorial,
+                    'attribute' => 'fechaantiguedad',                    
+                    'language' => 'es',                    
+                    'options' => array(
+                        'showAnim' => 'slideDown',
+                        'showButtonPanel' => true,
+                        'changeMonth' => true,
+                        'changeYear' => true,
+                        'dateFormat' => 'dd-mm-yy',
+                       
+                        
+                    ),
+                    'htmlOptions' => array(
+                        'style' => 'width: 150px;',
+                        'disabled'=>($model->scenario=='update' && $modificar==0)?true:false
+                       
+
+                    ),
+                    ), true);
+
+            ?>
+        </div>
+     <div class="column">
+            <?php
+                    
+                $ahora = time();
+                $unDiaEnSegundos = 24 * 60 * 60;
+                $manana = $ahora + $unDiaEnSegundos;    
+                $manana= date("d-m-Y", $manana);                        
+                echo $form->label($modelhistorial, 'fechaplanilla', array('label' => 'Fecha Ingreso Planilla' ));
+                echo $this->widget('zii.widgets.jui.CJuiDatePicker', array(
+                    'model' => $modelhistorial,
+                    'attribute' => 'fechaplanilla',
+                    'value' => $modelhistorial->fechaplanilla,
+                    'language' => 'es',
+                    
+                    'options' => array(
+                        'showAnim' => 'slideDown',
+                        'showButtonPanel' => true,
+                        'changeMonth' => true,
+                        'changeYear' => true,
+                        'dateFormat' => 'dd-mm-yy',
+                        
+              
+                    ),
+                    'htmlOptions' => array(
+                        'style' => 'width: 150px;'
+                        ,'data-v'=>'',
+                        'disabled'=>($model->scenario=='update' && $modificar==0)?true:false
+                    ),
+                    ), true);
+
+            ?>
+        </div>
+        <div class="column">
+            <?php
+                    
+                
+
+                        
+                echo $form->label($modelhistorial, 'fechaultidemnizacion', array('label' => 'Fecha U. Indemnizacion' ));
+                echo $this->widget('zii.widgets.jui.CJuiDatePicker', array(
+                    'model' => $modelhistorial,
+                    'attribute' => 'fechaultidemnizacion',
+                    'value' => $modelhistorial->fechaultidemnizacion,
+                    'language' => 'es',                    
+                    'options' => array(
+                        'showAnim' => 'slideDown',
+                        'showButtonPanel' => true,
+                        'changeMonth' => true,
+                        'changeYear' => true,
+                        'dateFormat' => 'dd-mm-yy',
+                       
+              
+                    ),
+                    'htmlOptions' => array(
+                        'style' => 'width: 150px;'
+                        ,'data-v'=>'',
+                        'disabled'=>($model->scenario=='update' && $modificar==0)?true:false
+                    ),
+                    ), true);
+            ?>
+        </div>
+        <div class="column">
+            <?php
+                    
+                
+
+                        
+                echo $form->label($modelhistorial, 'fechafincontrato');
+                echo $this->widget('zii.widgets.jui.CJuiDatePicker', array(
+                    'model' => $modelhistorial,
+                    'attribute' => 'fechafincontrato',
+                    'value' => $modelhistorial->fechafincontrato,
+                    'language' => 'es',                    
+                    'options' => array(
+                        'showAnim' => 'slideDown',
+                        'showButtonPanel' => true,
+                        'changeMonth' => true,
+                        'changeYear' => true,
+                        'dateFormat' => 'dd-mm-yy',
+                       
+              
+                    ),
+                    'htmlOptions' => array(
+                        'style' => 'width: 150px;'
+                        ,'data-v'=>'',
+                        'disabled'=>($model->scenario=='update' && $modificar==0)?true:false
+                    ),
+                    ), true);
+            ?>
+        </div>
+          
+    </div>
+   
+    <div class="row">
+ 
+   
+    <div class="column" style="width: 50%;">
+        <?php echo $form->label($historialContrato, 'idnivelsalarial',array('label'=>'Nivel Salarial')); ?>
+
+        <?php echo $form->hiddenField($historialContrato,'idnivelsalarial'); ?>
+        <?php
+        if($model->scenario=='update' && $modificar==0){
+            echo "".$historialContrato->nivelsalarial;
+            
+        }else{
+            
+        
+        
+        
+        ?>
+
+        <div id="autocomplete">
+            <?php $this->widget('zii.widgets.jui.CJuiAutoComplete', array(
+                'model' =>$historialContrato,
+                'attribute' => 'nivelsalarial',
+                'source' => $this->createUrl("historialcontrato/autocompleteNivelsalarial"),
+                'options' => array(
+                    'showAnim' => 'slideDown',
+                    'delay' => '0',
+                    'select' => "js:function(event, ui) {
+
+                                        $('#'+Persona.Id('idnivelsalarial') ).val(ui.item.id);
+                                
+                                     
+                                    }"
+                ),
+                'htmlOptions' => array(
+                    'placeholder'=>'Seleccione Sueldo...',
+                    'style' => 'width: 100% !important;text-transform: uppercase;',
+                    
+                ),
+            ));
+            ?>
+              
+            </div>
+<?php
+
+        }?>
+    </div>
+      <div class="column">
+    
+        <?php echo $form->labelEx($modele,'jornadalaboral'); ?>
+        <?php echo $form->numberField($modele,'jornadalaboral',array('min'=>'4', 'style'=>'width:150px' , 'disabled'=>($model->scenario=='update' && $modificar==0)?true:false)); ?>
+    </div>
+    
+   
+    </div>
+    
+    <div class="row">
+        <div class="column">
+    
+        <?php echo $form->labelEx($modele,'montocategoria'); ?>
+        <?php echo $form->numberField($modele,'montocategoria',array('min'=>'0', 'style'=>'' )); ?>
+    </div>
+        <div class="column">
+    
+        <?php echo $form->labelEx($modele,'montotransporte'); ?>
+        <?php echo $form->numberField($modele,'montotransporte',array('min'=>'0', 'style'=>'' )); ?>
+    </div>
+    </div>
+    <div  class="row">
+         <div class="column">
+         <?php echo $form->labelEx($modele,'idafp',array('label'=>'Seleccione Afp...')); ?>
+         <?php echo $form->dropDownList($modele,'idafp',CHtml::listData(Afp::model()->findAll(),'id','nombre'),array('empty'=>'')); ?>
+        </div>
+         <div class="column">
+         <?php echo $form->labelEx($modele,'analizarsellada',array('label'=>'Controlar Asistencia?')); ?>
+         <?php echo $form->checkBox($modele,'analizarsellada' ,array('onclick'=>'Persona.AnalizarselladaPermisos()')); ?>
+           
+         </div>
+         <div class="column">
+         <?php echo $form->labelEx($modele,'esobrero',array('label'=>'Es Obrero ?')); ?>
+         <?php echo $form->checkBox($modele,'esobrero'); ?>
+         </div>
+        <div class="column">
+         <?php echo $form->labelEx($modele,'jubilado',array('label'=>'Es Jubliado ?')); ?>
+         <?php echo $form->checkBox($modele,'jubilado'); ?>
+        </div>
+         
+    </div>
+    <div class="">
+         <div class=" alert alert-info"><strong>Controlar Asistencia:</strong>Debe tikear si desea realizar el seguimiento de  Asistencia  del empleado (Control de atrasos, faltas, permisos, horas extra entre otros).
+          <br><strong>Es Obrero:</strong>Debe tickear si el empleado es Obrero, esto permitirá que el sistema pueda realizar previsiones y pago de aguinaldos a partir del primer mes de contratación del empleado.</div>
+   
+
+    </div>
+    <div class=" alert alert-info" style="display: <?php echo ($model->scenario=='update')? 'block;':'none;'?>"  <?php echo   ' id="'.System::Id('contenedorMensajeAnalizar').'"';?>>
+         
+
+    </div>
+     <div class="row">
+     
+      <div class="column">
+      
+ <?php
+                if ($model->scenario!='update' || $modificar==1) {
+                  
+                echo $form->label($modelmp, 'idhorario',array('label'=>'Horario'));
+                echo $form->dropDownList($modelmp,'idhorario',CHtml::listData(Horario::model()->findAll(array('order'=>'t.nombre asc ','condition'=> 't.estado=true')),'id','nombre'),array('empty'=>'','onchange'=>'Persona.dameInformacionHorario(this.value)'));
+                 }
+
+            ?>  
+      </div>
+      
+        
+    </div>
+    
+    <?php
+      if ($model->scenario!='update' ||$modificar==1 ) {
+        ?>
+<div class="row">
+           <?php echo $form->labelEx($model, 'rangohora',array('label'=>'Horas de Trabajo')); ?>
+    </div>
+          <div class="row " <?php echo 'id="'.System::Id('contenedorHorario').'"';?>>
+         
+    
+            <?php
+
+echo SGridView::widget('TGridView', array(
+        'id' => 'gridHorasTrabajo',
+        'dataProvider' => $listahorario,       
+       'buttonAdd' => false,
+        'buttonText' => '+',        
+        'height' => 60,
+    'ableAddRow'=>false,
+        'eventAfterEdition' => 'Persona.cantidadHora();',
+        'columns' => array(           
+            array( 
+                'name' => 'id',
+                'typeCol' => 'hidden'
+                
+            ),
+             array(
+                'header' => 'Dia (desde)',
+                'name' => 'dia',
+                'value' => '$data->iddia == null? "" : $data->iddia0->nombre',
+                'width' => 10,
+                'style' => array('text-transform' => 'uppercase'),
+                'typeCol' => 'uneditable',
+                
+            ),
+              array( 
+                'name' => 'iddia',
+                'typeCol' => 'hidden'
+                
+            ),
+                         array(
+                'header' => 'Dia (hasta)',
+                'name' => 'diad',
+                'value' => '$data->iddiad == null? "" : $data->iddiad0->nombre',
+                'width' => 10,
+                'style' => array('text-transform' => 'uppercase'),
+                'typeCol' => 'uneditable',
+            
+            ),
+              array( 
+                'name' => 'iddiad',
+                'typeCol' => 'hidden'
+                
+            ),
+               array(
+                'header'=>'Horas',
+                'name' => 'rangohora',
+                'value' => '$data->idrangohora == null? "" : $data->idrangohora0->horai."-".$data->idrangohora0->horas."(". $data->idrangohora0->turno.")"',
+                'width' => 15,
+                'style' => array('text-transform' => 'uppercase'),
+                'typeCol' => 'uneditable',
+
+                
+
+                
+            ),
+            array( 
+                'name' => 'idrangohora',
+                'typeCol' => 'hidden',
+                   
+                
+            ),
+            array(
+                'header'=>'Horario Especial?',
+                'name' => 'estado',
+                'width' => 20,
+                'style' => array('text-transform' => 'uppercase'),
+                'values'=>'$data->estado==1?"si":"no"',
+                'typeCol' => 'uneditable',
+                
+            ),
+            array(
+                'header'=>'Fecha Inicio Secuencia',
+                'name'=>'fechaiseq',
+                'value'=>'$data->fechaiseq == null?"":  date("d-m-Y", strtotime($data->fechaiseq))',
+                'typeCol' => 'uneditable',
+                 'width' => 15,
+
+                ),
+               array(
+                'header'=>'Minutos de descanso',
+                'name'=>'mindescanso',
+                'type' => 'number(2)',
+                'width' => 15,
+                     'typeCol' => 'uneditable',
+
+                ),
+              
+
+           
+        ),
+    ));
+?>
+        </div>
+
+
+        <?php
+      }
+
+
+    ?>
+    
+
+        </div>
+
+
+   

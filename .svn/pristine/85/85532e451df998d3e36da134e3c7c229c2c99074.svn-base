@@ -1,0 +1,751 @@
+
+<?php
+/*
+ * Persona.php
+ *
+ * Version 0.$Rev: 244 $
+ *
+ * Creacion: 31/03/2019
+ *
+ * Ultima Actualizacion: $Date: 2015-03-17 10:26:19 -0400 (mar, 17 mar 2015) $:
+ * 
+ * Copyright 2015 SOLUR SRL.
+ * Monteagudo esq. Los Sauces, Sucre, Bolivia.
+ * Todos los derechos reservados.
+ *
+ * Este software es información confidencial y de propiedad de SOLUR SRL.
+ * Usted no podrá divulgar dicha Información Confidencial y la utilizará 
+ * únicamente de acuerdo con los términos del acuerdo de licencia con SOLUR SRL.
+ 
+ * This is the model class for table "general.persona".
+ *
+ * The followings are the available columns in table 'general.persona':
+ * @property integer $id
+ * @property string $ci
+ * @property string $expedicion
+ * @property string $nombre
+ * @property string $apellidop
+ * @property string $apellidom
+ * @property string $estadocivil
+ * @property string $apellidocasada
+ * @property string $sexo
+ * @property string $foto
+ * @property string $fechanac
+ * @property string $telefono
+ * @property string $ncelular
+ * @property string $correoe
+ * @property string $gruposanguineo
+ * @property string $numafp
+ * @property string $alergia
+ * @property string $nombreref
+ * @property string $telefonoref
+ * @property string $usuario
+ * @property string $fecha
+ * @property boolean $eliminado
+ * @property integer $idlocalidad
+ * @property integer $iddireccion
+ *
+ * The followings are the available model relations:
+ * @property Localidad $idlocalidad
+ * @property Direccion $iddireccion
+ * @property Empleado[] $empleados
+ */
+class Persona extends CActiveRecord
+{
+    /**
+     * Crea un ámbito por defecto que permite añadir condiciones al modelo
+     */
+    public $localidad;
+    public $area;
+    public $unidad;
+    public $idseccion;
+    public $puestotrabajo;
+    public $rangohora;
+    public $idmunicipio,$municipio,$contrato,$canth=0,$hmes=0,$minmes=0,$activo,$idplanilla,$monto,$montorciva,$descripcion,$idformapago,$descripcionformapago,$estado,$limpiar,$porcentajepago,$empresasubempleadora,$consegundoaguinaldo,$codrciva;
+    public function defaultScope() {
+        return array(
+            'condition' => $this->getTableAlias(false, false) .
+            '.eliminado = false',
+        );
+    }
+    
+    /**
+     * @return string the associated database table name
+     */
+    public function tableName()
+    {
+            return 'general.persona';
+    }
+
+    /**
+     * @return array validation rules for model attributes.
+     */
+    public function rules()
+    {
+            // NOTE: you should only define rules for those attributes that
+            // will receive user inputs.
+            return array(
+                    array('idlocalidad, iddireccion', 'numerical', 'integerOnly'=>true),
+                    array('ci', 'length', 'max'=>15),
+                    array('expedicion,complementoci', 'length', 'max'=>3),
+                    array('nombre', 'length', 'max'=>50),
+                    array('apellidop, apellidom, apellidocasada', 'length', 'max'=>40),
+                    array('estadocivil, usuario', 'length', 'max'=>30),
+                    array('sexo', 'length', 'max'=>1),
+                // array('foto', 'file', 'types'=>'jpg,jpeg,png'),
+                    array(' nombreref', 'length', 'max'=>100),
+                    array('telefono, ncelular, telefonoref', 'length', 'max'=>10),
+                    array('profesion', 'length', 'max'=>100),
+                    array(' numafp,codrciva', 'length', 'max'=>60),
+                    array('correoe','email'),
+                    array('gruposanguineo', 'length', 'max'=>5),
+                    array('fechanac,profesion, alergia,discapacidad, fecha, eliminado,maticulaseguro', 'safe'),
+                      array('ci, nombre,estadocivil,expedicion,sexo,fechanac,idlocalidad,idmunicipio,municipio,localidad,unidad', 'required', 'on' => array('insert', 'update')),
+                    // The following rule is used by search().
+                    // @todo Please remove those attributes that should not be searched.
+                    array('id, ci,profesion, expedicion,complementoci, nombre, apellidop, apellidom, estadocivil, apellidocasada, sexo, foto, fechanac, telefono, ncelular, correoe, gruposanguineo, numafp, alergia, nombreref, telefonoref, usuario, fecha, eliminado, idlocalidad, iddireccion,area,nombrearea,activo', 'safe', 'on'=>'search'),
+            );
+    }
+
+    /**
+     * @return array relational rules.
+     */
+    public function relations()
+    {
+            // NOTE: you may need to adjust the relation name and the related
+            // class name for the relations automatically generated below.
+            return array(
+                    'idlocalidad0' => array(self::BELONGS_TO, 'Localidad', 'idlocalidad'),
+                    'iddireccion0' => array(self::BELONGS_TO, 'Direccion', 'iddireccion'),
+                    'empleados' => array(self::HAS_MANY, 'Empleado', 'idpersona'),
+                    'dependientes' => array(self::HAS_MANY, 'Dependiente', 'idpersona'),
+            );
+    }
+
+    /**
+     * @return array customized attribute labels (name=>label)
+     */
+    public function attributeLabels()
+    {
+            return array(
+                    'id' => 'ID',
+                    'ci' => 'Ci',
+                    'expedicion' => 'Expedicion',
+                    'nombre' => 'Nombre',
+                    'apellidop' => 'Apellido Paterno',
+                    'apellidom' => 'Apellido Materno',
+                    'estadocivil' => 'Estado Civil',
+                    'apellidocasada' => 'Apellido Casada',
+                    'sexo' => 'Sexo',
+                    'foto' => 'Foto',
+                    'fechanac' => 'Fecha Nacimiento',
+                    'telefono' => 'Telefono',
+                    'ncelular' => 'Nro Celular',
+                    'correoe' => 'Correo Electronico',
+                    'gruposanguineo' => 'Grupo Sanguineo',
+                    'numafp' => 'Nro AFP',
+                    'alergia' => 'Alergias',
+                    'nombreref' => 'Nombre Referencia.',
+                    'telefonoref' => 'Telefono Referencia.',
+                    'usuario' => 'Usuario',
+                    'fecha' => 'Fecha',
+                    'eliminado' => 'Eliminado',
+                    'idlocalidad' => 'Localidad',
+                    'iddireccion' => 'Direccion',
+                    'idmunicipio'=>'Municipio',
+                    'contrato'=>'Tipo de Contrato',
+                    'puestotrabajo'=>'Puesto de Trabajo',
+                    'maticulaseguro'=>'Matricula Seguro',
+                    'activo'=>'Estado',
+                    'idplanilla'=>'Planilla',
+                    'area'=>'Area',
+                    'nombrearea'=>'Nombre Area',
+                    'complementoci'=>'Complemento C.I.',
+                    'profesion'=>"Profesión"
+
+            );
+    }
+
+    /**
+     * Retrieves a list of models based on the current search/filter conditions.
+     *
+     * Typical usecase:
+     * - Initialize the model fields with values from filter form.
+     * - Execute this method to get CActiveDataProvider instance which will filter
+     * models according to data in model fields.
+     * - Pass data provider to CGridView, CListView or any similar widget.
+     *
+     * @return CActiveDataProvider the data provider that can return the models
+     * based on the search/filter conditions.
+     */
+    public function search()
+    {
+            // @todo Please modify the following code to remove attributes that should not be searched.
+
+            $criteria=new CDbCriteria;
+
+		$criteria->compare('t.id',$this->id);
+		$criteria->addSearchCondition('t.ci',$this->ci,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.expedicion',$this->expedicion,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.nombre',$this->nombre,true,'AND','ILIKE');
+                $criteria->addSearchCondition('t.apellidop',$this->apellidop,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.apellidom',$this->apellidom,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.estadocivil',$this->estadocivil,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.apellidocasada',$this->apellidocasada,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.sexo',$this->sexo,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.foto',$this->foto,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.fechanac',$this->fechanac,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.telefono',$this->telefono,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.ncelular',$this->ncelular,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.correoe',$this->correoe,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.gruposanguineo',$this->gruposanguineo,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.numafp',$this->numafp,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.alergia',$this->alergia,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.nombreref',$this->nombreref,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.telefonoref',$this->telefonoref,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.usuario',$this->usuario,true,'AND','ILIKE');
+    
+                $criteria->join = "right  JOIN dame_lista_empleado_area('".$this->area."') r ON r.id= t.id ";
+                 if ($this->activo!='' || $this->activo != null){
+                     $criteria->compare('r.activo',$this->activo);
+                 }
+                 if ($this->fecha != Null) {
+                          $criteria->addCondition("t.fecha::date = '" . $this->fecha. "'");
+		 }
+		$criteria->compare('t.idlocalidad',$this->idlocalidad);
+		$criteria->compare('t.iddireccion',$this->iddireccion);
+                $criteria->select='t.*,r.nombrearea,r.activo';
+
+            return new CActiveDataProvider($this, array(
+                    'pagination'=>array(
+                        'pageSize'=> Yii::app()->user->getState('pageSize',Yii::app()->params['defaultPageSize']),
+                    ), 
+                    'criteria'=>$criteria,                     
+                    'sort' => array(
+                        'defaultOrder' => 't.nombrecompleto asc',
+                        'attributes' => array(
+                                    'area' => array(
+                                        'asc' => 'r.nombrearea ,t.apellidop , t.apellidom ,t.nombre asc',
+                                        'desc' => 'r.nombrearea desc,t.apellidop asc, t.apellidom asc,t.nombre asc',
+                                    ),
+                                    'activo' => array(
+                                        'asc' => 'r.activo ,t.apellidop , t.apellidom ,t.nombre asc',
+                                        'desc' => 'r.activo desc,t.apellidop asc, t.apellidom asc,t.nombre asc',
+                                    
+                                    ),
+                                    'ci' => array(
+                                        'asc' => 't.ci asc',
+                                        'desc' => 't.ci desc',
+                                    ),
+                                    'apellidop' => array(
+                                        'asc' => 't.apellidop asc , t.apellidom asc,t.nombre asc',
+                                        'desc' => 't.apellidop desc , t.apellidom desc,t.nombre desc',
+                                    
+                                    ),
+                                    'apellidom' => array(
+                                        'asc' => 't.apellidom asc, t.apellidop asc,t.nombre asc',
+                                        'desc' => 't.apellidom desc, t.apellidop asc ,t.nombre asc',
+                                    ),
+                                    'nombre' => array(
+                                        'asc' => 't.nombre asc, t.apellidop asc, t.apellidom  asc',
+                                        'desc' => 't.nombre desc, t.apellidop asc, t.apellidom  asc',
+                                    
+                                    ),
+                                    'usuario' => array(
+                                        'asc' => 't.usuario asc, t.apellidop asc, t.apellidom  asc,t.nombre asc ',
+                                        'desc' => 't.usuario desc, t.apellidop asc, t.apellidom  asc,t.nombre asc',
+                                    
+                                    ),
+                                    'fecha' => array(
+                                        'asc' => 't.fecha asc, t.apellidop asc, t.apellidom  asc,t.nombre asc ',
+                                        'desc' => 't.fecha desc, t.apellidop asc, t.apellidom  asc,t.nombre asc',
+                                    
+                                    ),
+           
+           
+        )
+                        
+                    ),
+            ));
+    }
+
+    /**
+     * @return CDbConnection the database connection used for this class
+     */
+    public function getDbConnection()
+    {
+            return Yii::app()->rrhh;
+    }
+    /**
+     * 
+     * @param integer $idhorario, id del horario
+     * @return \CActiveDataProvider
+     */
+    public function listaEmpleado($idhorario)
+      {
+          $criteria = new CDbCriteria;
+          $criteria->addCondition("t.id in (select distinct e.idpersona from general.empleado e inner join movimientopersonal mp on mp.idempleado=e.id where mp.idhorario=$idhorario and  e.eliminado=false and mp.eliminado=false and e.id in(( select idempleado from general.historialestadoempleado where eliminado=false and activo=1 and id in(   select ( select max(id) from general.historialestadoempleado where eliminado=false and idempleado =e.id) from general.empleado e where eliminado=false ) ))
+           ) ");
+          $criteria->join='right  JOIN  general.empleado e on e.idpersona=t.id';
+          $criteria->select='e.id,t.nombrecompleto';
+
+          return new CActiveDataProvider($this, array(
+              'pagination' => false,
+              'criteria' => $criteria,
+              'sort' => array(
+                  'defaultOrder' => 't.nombrecompleto asc',
+              )
+          ));
+      }
+        
+ 
+    /**
+     * Returns the static model of the specified AR class.
+     * Please note that you should have this exact method in all your CActiveRecord descendants!
+     * @param string $className active record class name.
+     * @return Persona the static model class
+     */
+    public static function model($className=__CLASS__)
+    {
+            return parent::model($className);
+    }
+
+
+    /**
+     *
+     * Sentencias entes de ejecutar metodo save
+     * Antes de guardar se cambia todos los campos  de tipo character
+     * varying y text a mayúsculas
+     * Si existe el campo fecha, este toma el valor de la fecha actual antes
+     * de almacenarse
+     * Si existe el campo usuario, toma el valor del usuario actual antes de
+     * almacenarse
+     * 
+     */
+    public function beforeSave() {
+		$this->ci=strtoupper($this->ci);
+		$this->expedicion=strtoupper($this->expedicion);
+		$this->nombre=strtoupper($this->nombre);
+		$this->apellidop=strtoupper($this->apellidop);
+		$this->apellidom=strtoupper($this->apellidom);
+		$this->estadocivil=strtoupper($this->estadocivil);
+		$this->apellidocasada=strtoupper($this->apellidocasada);
+		//$this->foto=strtoupper($this->foto);
+		$this->telefono=strtoupper($this->telefono);
+		$this->ncelular=strtoupper($this->ncelular);
+		//$this->correoe=strtoupper($this->correoe);
+		$this->gruposanguineo=strtoupper($this->gruposanguineo);
+		$this->numafp=strtoupper($this->numafp);
+		$this->alergia=strtoupper($this->alergia);
+		$this->nombreref=strtoupper($this->nombreref);
+		$this->telefonoref=strtoupper($this->telefonoref);
+                $this->profesion=strtoupper($this->profesion);
+		$this->usuario= Yii::app()->user->getName();
+		$this->fecha= new CDbExpression('NOW()');
+        return parent::beforeSave();            
+    }
+  /**
+   * 
+   * @param file $imagen, fotografia de la persona
+   * @param string $directorioTemporal, ruta del directorio donde se almacenara la fotografia
+   * @param integer $idpersona , id relacionada con la persona
+   * @return string, nombre del archivo
+   * @throws CrugeException
+   */
+  public function registrarImagen( $imagen, $directorioTemporal,$idpersona) {
+       
+        $swFtp = Yii::app()->ftp;
+      $nombreArchivo='';
+
+        try {
+            if (isset($imagen) && isset($idpersona)) {
+              
+                $imagenPersona = $imagen;
+                $cantidad = count($imagen);
+                $swFtp->createDirectory($this->tableName());
+                $swFtp->chdir($this->tableName());
+                $swFtp->createDirectory($idpersona);
+                $swFtp->chdir($idpersona);
+                $swFtp->emptyDirectory();
+                if ($cantidad > 0) {
+                    for ($i = 1; $i <= $cantidad; $i++) {
+                        foreach ($imagenPersona[$i] as $atributo => $dato) {
+                                     if ($atributo == 'archivo') {
+                                $ruta = explode("/", $dato);
+                                if (count($ruta) > 1) {
+                                    $nombreArchivo = $ruta['1'];
+                                    if ($dato != Null) {
+                                        $swFtp->put($nombreArchivo,$directorioTemporal . '/' . $dato,FTP_BINARY);
+                                        $swFtp->chmod( $nombreArchivo,0705);                           
+
+
+                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    exec("rm -rf " . escapeshellarg($directorioTemporal));
+                }
+            }
+        } catch (Exception $ex) {
+            throw new CrugeException('Error al registrar Fotografia ', 483);
+        }
+        return $nombreArchivo;
+    }
+    /**
+     * 
+     * @param integer $idpersona, id de la persona
+     * @param type $directorioTemporal
+     * @throws CrugeException
+     */
+    public function prepararImagen($idpersona, $directorioTemporal) {
+      try{ $swFtp = Yii::app()->ftp;
+      
+        
+         $r=ftp_nlist($swFtp->dameConexion(), ".");
+
+          if ($r[0]==$this->tableName()) {
+            $swFtp->chdir($this->tableName());
+             $r=ftp_nlist($swFtp->dameConexion(), ".");
+             $existe=false;
+            for ($i=0; $i < count($r); $i++) { 
+              if ($r[$i]==$idpersona) {
+                $existe=true;
+                break;
+              }
+            }
+
+          if ($existe) {
+            $swFtp->chdir($idpersona);
+               try {
+            if ($idpersona != Null && $directorioTemporal != Null) {
+                $swFtp->downloadDirectoryContent($directorioTemporal . "/uploads");
+            }
+        } catch (Exception $ex) {
+            throw new CrugeException('Error al preparar imagen ', 483);
+        }
+
+          }else{
+          
+          /*
+            $content = ftp_nlist($swFtp->dameConexion(), '.');
+        foreach ($content as $file => $value) {
+            if ($value=='default') {
+              $swFtp->chdir('default');
+              ftp_get($swFtp->dameConexion(),  '5e8d230f161ef.png', '5e8d230f161ef.png', FTP_BINARY);
+            }
+            
+        }*/
+            
+          } 
+          }else{
+              
+          }
+
+
+       
+        $swFtp->close();
+
+      }
+        catch(Exception $ex){
+          
+        }
+    }
+    /**
+     * 
+     * @param string $nombre, nombre completo  o parte del nombre competo de  la persona
+     * @return \CActiveDataProvider
+     */
+        public function filtraPersona($nombre)
+    {
+        $criteria = new CDbCriteria;
+        $nombre=strtoupper($nombre);
+        $criteria->addCondition("t.nombrecompleto like '%".$nombre."%' and t.id in (  (select e.idpersona from general.historialestadoempleado hee inner join  general.empleado e on e.id=hee.idempleado      where   hee.eliminado=false  and hee.activo=1 and hee.id in (select  (select max(id) from general.historialestadoempleado where eliminado=false and idempleado=e.id) as idhistorial from general.empleado e where   e.eliminado=false)) 
+            )  ");
+        
+        return new CActiveDataProvider($this, array(
+            'criteria' => $criteria
+        ));
+    }
+    /**
+     * 
+     * @param string $nombre, nombre completo  o parte del nombre competo de  la persona
+     * @return \CActiveDataProvider
+     */
+    public function filtraPersonaHorarioespecial($nombre)
+    {
+        $criteria = new CDbCriteria;
+        $nombre=strtoupper($nombre);
+        $criteria->addCondition("t.nombrecompleto like '%".$nombre."%' and t.id in (  (select e.idpersona from general.historialestadoempleado hee inner join  general.empleado e on e.id=hee.idempleado   where e.analizarsellada=true and hee.eliminado=false  and hee.activo=1 and hee.id in (select  (select max(id) from general.historialestadoempleado where eliminado=false and idempleado=e.id) as idhistorial from general.empleado e where   e.eliminado=false)) 
+            )  ");
+        
+        return new CActiveDataProvider($this, array(
+            'criteria' => $criteria
+        ));
+    }
+    /**
+     * 
+     * @param string $nombre, nombre completo  o parte del nombre competo de  la persona
+     * @return \CActiveDataProvider
+     */
+     public function filtraPersonaAutSeguimiento($nombre)
+    {
+        $criteria = new CDbCriteria;
+        $nombre=strtoupper($nombre);
+        $criteria->addCondition("t.nombrecompleto like '%".$nombre."%' and t.id in (  (select e.idpersona from general.historialestadoempleado hee inner join  general.empleado e on e.id=hee.idempleado   where hee.eliminado=false  and hee.activo=1 and hee.id in (select  (select max(id) from general.historialestadoempleado where eliminado=false and idempleado=e.id) as idhistorial from general.empleado e where   e.eliminado=false)) 
+            )  ");
+        
+        return new CActiveDataProvider($this, array(
+            'criteria' => $criteria
+        ));
+    }
+    /**
+     * 
+     * @param string $nombre, nombre completo  o parte del nombre competo de  la persona
+     * @return \CActiveDataProvider
+     */
+        public function filtraPersonaVacacion($nombre)
+    {
+        $criteria = new CDbCriteria;
+        $nombre=strtoupper($nombre);
+        $criteria->addCondition("t.nombrecompleto like '%".$nombre."%' and t.id in (  (select e.idpersona from general.historialestadoempleado hee inner join  general.empleado e on e.id=hee.idempleado  inner join general.seguimientoempleado se on se.idempleado=e.id inner join ftbl_usuario_web_cruge_user cu on cu.iduser=se.idcrugeuser   where  se.eliminado=false and cu.username='".Yii::app()->user->getName()."' and hee.eliminado=false  and ( select  dias from general.vacaciones where eliminado=false and idempleado=e.id order by id desc limit 1)>=1  and hee.activo=1 and hee.id in (select  (select max(id) from general.historialestadoempleado where eliminado=false and idempleado=e.id) as idhistorial from general.empleado e where   e.eliminado=false)) 
+            )  ");
+        
+        return new CActiveDataProvider($this, array(
+            'criteria' => $criteria
+        ));
+    }
+    /**
+     * 
+     * @param integer $idbono, id del bono asignado
+     * @param string $nombre, nombre completo  o parte del nombre competo de  la persona
+     * @return \CActiveDataProvider
+     */
+      public function filtraPersonaBono($idbono,$nombre)
+    {
+        $criteria = new CDbCriteria;
+        $nombre=strtoupper($nombre);
+        $criteria->addCondition("t.nombrecompleto like '%".$nombre."%' and t.id in (  (select e.idpersona from general.historialestadoempleado hee inner join  general.empleado e on e.id=hee.idempleado   where hee.eliminado=false  and hee.activo=1 and hee.idempleado not in( select idempleado from empleadobono where eliminado=false and idbono=$idbono) and hee.id in (select  (select max(id) from general.historialestadoempleado where eliminado=false and idempleado=e.id) as idhistorial from general.empleado e where   e.eliminado=false)) 
+            )  ");
+        
+        return new CActiveDataProvider($this, array(
+            'criteria' => $criteria
+        ));
+    }
+    /**
+     * 
+     * @param integer $idpersona, id de la persona
+     * @return string, nombre del area a la que pertenece 
+     */
+     public function dameNombreArea($idpersona)
+    {
+      $idpersona=SeguridadModule::dec($idpersona);
+      return Yii::app()->rrhh->createCommand('select dame_area_empleado('.$idpersona.' ) as area')->queryScalar();
+    }
+    /**
+     * 
+     * @param integer $idpersona, id de la persona
+     * @return array, con la informacion si esta activo y si se puede generar finiquito
+     */
+    public function dameEstadoEmpleado($idpersona)
+    {      
+      $idpersona=SeguridadModule::dec($idpersona);
+      return Yii::app()->rrhh->createCommand('select dame_estado_empleado('.$idpersona.' ) as activo')->queryScalar();
+    }
+    /**
+     * 
+     * @param integer $idpersona, id de la persona
+     * @return boolean ,true =Mostrar Boton Retiro Con generacion finiquito, false=No mostrar Boton Con  Retiro No se puede 
+     */
+     public function MostrarRetiro($idpersona)
+    {
+       $idpersona=SeguridadModule::dec($idpersona);
+       $activo= Yii::app()->rrhh->createCommand('select * from dame_estado_empleado('.$idpersona.' ) ')->queryAll();
+       $mostrar= Yii::app()->rrhh->createCommand('select  case when hee.activo =1 then
+( select tc.generafiniquito from 
+ contrato c 
+inner join general.tipocontrato tc on tc.id=c.idtipocontrato  where c.eliminado=false  and c.idhistorialestadoempleado=hee.id order by fechai desc limit 1
+
+) else(
+ select tc.generafiniquito from 
+ contrato c 
+inner join general.tipocontrato tc on tc.id=c.idtipocontrato  where c.eliminado=false  and c.idhistorialestadoempleado=(select  he.id from general.historialestadoempleado he where he.eliminado=false and he.idempleado=hee.idempleado and he.id<hee.id order by he.id desc limit 1)  order by fechai desc limit 1
+
+) end
+ from general.historialestadoempleado hee inner join general.empleado e on e.id=hee.idempleado 
+ where hee.eliminado=false and e.idpersona='.$idpersona.' order by  hee.id desc limit 1')->queryScalar();
+       
+       if ($activo[0]['activo']==1 && $mostrar==true && $activo[0]['generar']==true  ) {
+         return true;
+        }else{
+         return false;
+        }
+    }
+    /**
+     * 
+     * @param integer $idpersona, id de la persona
+     * @return boolean, true =Mostrar Boton Retiro Sin generacion finiquito, false=No mostrar Boton Sin  Retiro No se puede 
+     */
+     public function MostrarRetirosinfiniquito($idpersona)
+    {
+       $idpersona=SeguridadModule::dec($idpersona);
+       $activo= Yii::app()->rrhh->createCommand('select * from dame_estado_empleado('.$idpersona.' ) ')->queryAll();
+       $mostrar= Yii::app()->rrhh->createCommand('select  case when hee.activo =1 then
+( select tc.generafiniquito from 
+ contrato c 
+inner join general.tipocontrato tc on tc.id=c.idtipocontrato  where c.eliminado=false  and c.idhistorialestadoempleado=hee.id order by fechai desc limit 1
+
+) else(
+ select tc.generafiniquito from 
+ contrato c 
+inner join general.tipocontrato tc on tc.id=c.idtipocontrato  where c.eliminado=false  and c.idhistorialestadoempleado=(select  he.id from general.historialestadoempleado he where he.eliminado=false and he.idempleado=hee.idempleado and he.id<hee.id order by he.id desc limit 1)  order by fechai desc limit 1
+
+) end
+ from general.historialestadoempleado hee inner join general.empleado e on e.id=hee.idempleado 
+ where hee.eliminado=false and e.idpersona='.$idpersona.' order by  hee.id desc limit 1')->queryScalar();
+      
+       if ($activo[0]['activo']==1 && ($mostrar==false  || ($mostrar==true && $activo[0]['generar']==false)) ) {
+         return true;
+        }else{
+         return false;
+        }
+    }
+    /**
+     * 
+     * @param integer $idpersona, id de la persona
+     * @return boolean, true = Mostrar eliminar Persona en caso que no este relacionada con ningun Corte de Planilla y false si esta dentro de algun Corte de Planilla
+     */
+     public function MostrarEliminarPersona($idpersona)
+    {
+       $idpersona=SeguridadModule::dec($idpersona);
+       $mostrar= Yii::app()->rrhh->createCommand('select count(*) from cuerpo c inner join general.empleado e on e.id=c.idempleado  where  c.eliminado=false and e.idpersona='.$idpersona)->queryScalar();
+      
+       if ( $mostrar==0) {
+         return true;
+        }else{
+         return false;
+        }
+    }
+    /**
+     * 
+     * @param integer $idpersona, id de la persona
+     * @return boolean, true=Mostrar el boton de Reincorpporacion si la persona No esta activa y false si la Persona Esta Activa 
+     */
+     public function MostrarReincorporacion($idpersona)
+    {
+        $idpersona=SeguridadModule::dec($idpersona);
+        $activo= Yii::app()->rrhh->createCommand('select activo from dame_estado_empleado('.$idpersona.' ) as activo')->queryScalar();
+        if ($activo==0) {
+         return true;
+        }else{
+            return false;
+        }
+    }
+    /**
+     * 
+     * @param integer $idhistorialestadoempleado, id del Estado historial de la Persona
+     * @param integer $idformapago,posibles valores 1= pago en efectivo, 2= pago mediante cheque y 3= pago bancario
+     * @param string $descripcionformapago, descripcion corta del la forma de pago
+     * @param float $montorciva, monto presentado de facturas
+     * @param boolean $pagosegundoaguinaldo,  si en el finiquito se pagara con segundo aguinaldo
+     * @param array $listaabonos, informacion del los  abonos que se asignaran al finiquito
+     * @param array $lista, lista de  descuento que se hara en el finiquito
+     */
+   public function RealizarPagoBeneficio($idhistorialestadoempleado,$idformapago,$descripcionformapago,$montorciva,$pagosegundoaguinaldo,$listaabonos,$lista)
+    {
+      $usuario=Yii::app()->user->getName();
+      $id=Yii::app()->rrhh->createCommand("select registrar_pagofiniquito($idhistorialestadoempleado,$idformapago,'$descripcionformapago',$pagosegundoaguinaldo::boolean ,'$usuario') ")->queryScalar();
+           if( floatval($montorciva)>=0){
+           $opb=new Otrasdeduccionesbonificaciones;
+           $opb->idpagobeneficio=$id;
+           $opb->tipo='R';
+           $opb->descripcion='Monto Factura Presentadas';
+           $opb->monto= floatval($montorciva);
+           $opb->usuario=$usuario;
+           $opb->save();
+       }else{
+        $opb=new Otrasdeduccionesbonificaciones;
+        $opb->idpagobeneficio=$id;
+        $opb->tipo='R';
+        $opb->descripcion='Monto Factura Presentadas';
+        $opb->monto= 0;
+        $opb->usuario=$usuario;
+        $opb->save();
+       }
+      
+      
+       $cant= count($listaabonos);
+       for($i=1;$i<=$cant;$i++){
+             if($listaabonos[$i]['descripcion']!=''&& floatval($listaabonos[$i]['monto'])>0){
+           $opb=new Otrasdeduccionesbonificaciones;
+           $opb->idpagobeneficio=$id;
+           $opb->tipo='A';
+           $opb->descripcion=$listaabonos[$i]['descripcion'];
+           $opb->monto= floatval($listaabonos[$i]['monto']);
+           $opb->usuario=$usuario;
+           $opb->save();
+       }
+       }
+       $cant= count($lista);
+       for($i=1;$i<=$cant;$i++){
+             if($lista[$i]['descripcion']!=''&& floatval($lista[$i]['monto'])>0){
+           $opb=new Otrasdeduccionesbonificaciones;
+           $opb->idpagobeneficio=$id;
+           $opb->tipo='D';
+           $opb->descripcion=$lista[$i]['descripcion'];
+           $opb->monto= floatval($lista[$i]['monto']);
+           $opb->usuario=$usuario;
+           $opb->save();
+       }
+       }
+      
+    }
+    /**
+     * 
+     * @param integer[] $listabono, id de los bonos asignados al empleado
+     * @param intger $idempleado, id del empleado
+     */
+    public function GuardarCambioBono($listabono,$idempleado) {
+        $lista='';
+        for($i=1;$i<=count($listabono);$i++){
+            if($listabono[$i]['id']!=='')
+            $lista.=$listabono[$i]['id'].',';
+            
+        }
+        if(strlen(  $lista)>0){
+            $lista= substr($lista,0, -1);
+            Yii::app()->rrhh->createCommand("update empleadobono set eliminado=true where idempleado=$idempleado and id not in($lista)")->execute();
+        
+           
+        }
+    }
+    /**
+     * 
+     * @param integer $id, id del empleado
+     * @return string, mensaje en caso de no poder eliminar al empleado
+     */
+    public function EliminarEmpleado($id) {
+      $respuesta= Yii::app()->rrhh->createCommand("select  eliminar_persona($id)")->queryScalar();
+      return $respuesta;
+          
+    }
+    /**
+     * 
+     * @param integer $id, id de la persona
+     * @return boolean, true = El usuario Puede Asignar un Nuevo Horario al empleado, false=el Usuario No puede Asignar Nuevo Horario al empleado
+     */
+    public function AsignarNuevoHorario($id) {
+          $id=SeguridadModule::dec($id);
+        if  (( Yii::app()->rrhh
+            ->createCommand("select count(*) from general.persona p inner join general.empleado e on e.idpersona=p.id "
+                    . "right outer join general.seguimientoempleado se on se.idempleado=e.id  "
+                    . "right outer JOIN ftbl_usuario_web_cruge_user cu  on cu.iduser=se.idcrugeuser "
+                    . "where se.eliminado=false and  cu.username='".Yii::app()->user->getName()."' and p.id=$id")
+            ->queryScalar())>0)
+                   return  true;
+            else
+                return false;
+    }
+
+}

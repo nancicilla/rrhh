@@ -1,0 +1,182 @@
+<?php
+
+
+echo System::Search(array(
+    'title' => 'Administración de Corte/Planilla',
+    'formSearch' => $this->renderPartial('_search', array('model' => $model), true),
+    'heightSearch' => Yii::app()->params['defaultAdminHeight'],
+    'contentSearch' => SGridView::widget('TGridViewSearch', array(
+        'id' => 'admPlanilla',
+        'dataProvider' => $model->search(),
+        'height' => Yii::app()->params['defaultAdminHeight'],
+        'columns' => array(
+        	array(
+		'name' => 'nombre',
+		'width' => 20,
+		
+		),
+        	array(
+		'name' => 'fechadesde',
+		'width' =>10,
+		
+		'value'=>' date ("d-m-Y",strtotime( $data->fechadesde))',
+		),
+		array(
+		'name' => 'fechahasta',
+		'width' =>10,
+		'value'=>' date ("d-m-Y",strtotime( $data->fechahasta))',
+		),
+		
+		
+		array(
+		'name' => 'fechaic',
+		'width' => 10,
+		'value'=>' date ("d-m-Y",strtotime( $data->fechaic))',
+		),
+		array(
+		'name' => 'fechafc',
+		'width' => 10,
+		'value'=>' date ("d-m-Y",strtotime( $data->fechafc))',
+		),
+		array(
+		'name' => 'estado',
+		'width' => 15,
+		'value'=>'$data->estado==1? "Corte Generado":( $data->estado==2?"Planilla Generada":"Planilla Consolidada")',
+		),
+            array(
+        'name' => 'usuario',
+        'width' => 10,
+        
+        ),
+		
+                array('typeCol' => 'buttons',
+                    'width' => 15,
+                    'deleteConfirmation'=>'¿Seguro que desea eliminar este elemento?',
+                    'planilaConfirmation'=>'¿Seguro que desea eliminar la Planilla?',
+                    'consolidarConfirmation'=>'¿Seguro que desea consolidar la Planilla?',
+                    'buttons' => 	array(
+                              'update' => array(
+                        'label' => 'Editar Corte',
+                        'icon' => 'pencil',
+                        'visible' => 'Planilla::model()->MostrarCorte(SeguridadModule::enc($data->getPrimaryKey()))',
+                       
+                    ),
+
+
+                        'delete' => array(
+                        'label' => 'Dar Baja Corte',
+                        'icon' => 'trash',
+                        'visible' => 'Planilla::model()->MostrarCorte(SeguridadModule::enc($data->getPrimaryKey()))',
+                       
+                    ),
+                        
+                        'gplanilla' => array(
+                        'label' => 'Generar Planilla',
+                        'icon' => 'ok',
+                        'visible' => 'Planilla::model()->MostrarCorte(SeguridadModule::enc($data->getPrimaryKey()))',
+                        'click' =>'                                                        
+                        function(){
+                            SGridView.selectRow(this);
+                            admPlanilla.Gplanilla();
+                            return false;
+                        }',
+                       ),
+                         'planilla' => array(
+                        'label' => 'Dar Baja Planilla',
+                        'icon' => 'trash',
+                        'visible' => 'Planilla::model()->MotrarDarBajaPlanilla(SeguridadModule::enc($data->getPrimaryKey()))',
+                        'click' =>'                                                        
+                        function(){
+                            SGridView.selectRow(this);
+                            admPlanilla.Planilla();
+                            return false;
+                        }',
+                        
+                    ),
+                    'descargarplanilla' => array(
+                        'label' => 'Descargar Planilla',
+                        'icon' => 'download-alt',
+                            'visible' => 'Planilla::model()->MotrarPlanillaReporte(SeguridadModule::enc($data->getPrimaryKey()))',
+                            'click' =>'                                                        
+                        function(){
+                            SGridView.selectRow(this);
+                            admPlanilla.GenerarPlanilla();
+                            return false;
+                        }',
+                        
+                    ),
+                    'consolidar' => array(
+                        'label' => 'Consolidar Planilla',
+                        'icon' => 'ok',
+                        'visible' => 'Planilla::model()->MotrarDarBajaPlanilla(SeguridadModule::enc($data->getPrimaryKey()))',
+                        'click' =>'                                                        
+                        function(){
+                            SGridView.selectRow(this);
+                            admPlanilla.Consolidar();
+                            return false;
+                        }',
+                        
+                    ),
+                         'consolidarindeminizacion' => array(
+                        'label' => 'Consolidar Planilla Indemnizacion',
+                        'icon' => 'ok-circle',
+                        'visible' => 'Planilla::model()->MotrarCondolidarIndemnizacion(SeguridadModule::enc($data->getPrimaryKey())) &&'.Yii::app()->user->checkAccess('action_rrhh_planilla_consolidarIndemnizacion').'==1',
+                      
+                        'click' =>'                                                        
+                        function(){
+                            SGridView.selectRow(this);
+                            admPlanilla.ConsolidarIndemnizacion();
+                            return false;
+                        }',
+                        
+                    ),
+                    'generarPrefacturaSueldos' => array(
+                        'label' => 'Consolidar Asiento Prefactura Sueldos',
+                        'icon' => 'ok-sign',
+                        'visible' => 'Planilla::model()->MotrarGenerarAsientoPrefacSueldos(SeguridadModule::enc($data->getPrimaryKey())) &&'.Yii::app()->user->checkAccess('action_rrhh_planilla_consolidarPrefacturaSueldos').'==1',
+                      
+                        'click' =>'                                                        
+                        function(){
+                            SGridView.selectRow(this);
+                            admPlanilla.ConsolidarPrefacturaSueldos();
+                            return false;
+                        }',
+                        
+                    ),
+                    'generarPrefacturaLactancia' => array(
+                        'label' => 'Consolidar Asiento Prefactura Lactancia',
+                        'icon' => 'ok-circle',
+                        'visible' => 'Planilla::model()->MotrarGenerarAsientoPrefacLactancia(SeguridadModule::enc($data->getPrimaryKey())) &&'.Yii::app()->user->checkAccess('action_rrhh_planilla_consolidarPrefacturaLactancia').'==1',
+                      
+                        'click' =>'                                                        
+                        function(){
+                            SGridView.selectRow(this);
+                            admPlanilla.ConsolidarPrefacturaLactancia();
+                            return false;
+                        }',
+                        
+                    ),
+                        'generarPrefacturaBonos' => array(
+                        'label' => 'Consolidar Asiento Prefactura Otros Bonos',
+                        'icon' => 'ok-sign',
+                        'visible' => 'Planilla::model()->MotrarGenerarAsientoPrefacBonos(SeguridadModule::enc($data->getPrimaryKey())) &&'.Yii::app()->user->checkAccess('action_rrhh_planilla_consolidarPrefacturaBonos').'==1',
+                      
+                        'click' =>'                                                        
+                        function(){
+                            SGridView.selectRow(this);
+                            admPlanilla.ConsolidarPrefacturaBonos();
+                            return false;
+                        }',
+                        
+                    ),
+                     'Imprimir' => array(
+                         'url' => 'array("imprimirBoletas","id"=>SeguridadModule::enc($data->getPrimaryKey()))','label'=>'Imprimir Boletas','visible' => 'Planilla::model()->MotrarPlanillaReporte(SeguridadModule::enc($data->getPrimaryKey()))', 'icon' => 'print', 'options' => array('target' => '_blank')),
+                    'ImprimirResumenAsistencia' => array('url' => 'array("imprimirResumenAsistencia","id"=>SeguridadModule::enc($data->getPrimaryKey()))','label'=>'Imprimir Resumen Asistencia','visible' => 'Planilla::model()->MotrarPlanillaReporte(SeguridadModule::enc($data->getPrimaryKey()))', 'icon' => 'print', 'options' => array('target' => '_blank')),
+                      
+                    
+                                    ),
+		),
+	),
+    ))
+));
+

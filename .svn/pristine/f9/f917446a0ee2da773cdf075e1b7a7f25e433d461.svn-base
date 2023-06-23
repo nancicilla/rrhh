@@ -1,0 +1,428 @@
+<?php
+/*
+ * Planilla.php
+ *
+ * Version 0.$Rev: 244 $
+ *
+ * Creacion: 30/04/2021
+ *
+ * Ultima Actualizacion: $Date: 2015-03-17 10:26:19 -0400 (mar, 17 mar 2015) $:
+ * 
+ * Copyright 2015 SOLUR SRL.
+ * Monteagudo esq. Los Sauces, Sucre, Bolivia.
+ * Todos los derechos reservados.
+ *
+ * Este software es información confidencial y de propiedad de SOLUR SRL.
+ * Usted no podrá divulgar dicha Información Confidencial y la utilizará 
+ * únicamente de acuerdo con los términos del acuerdo de licencia con SOLUR SRL.
+ 
+ * This is the model class for table "planilla".
+ *
+ * The followings are the available columns in table 'planilla':
+ * @property integer $id
+ * @property integer $mes
+ * @property integer $anio
+ * @property string $nombrer
+ * @property string $cir
+ * @property string $usuario
+ * @property string $fecha
+ * @property boolean $eliminado
+ * @property string $usuariob
+ * @property string $fechadesde
+ * @property string $fechahasta
+ * @property boolean $abierta
+ * @property string $listaasientos
+ * @property boolean $porsistema
+ * @property string $bindemnizacion
+ * @property string $bprimeraguinaldo
+ * @property string $bsegundoaguinaldo
+ * @property string $fechafc
+ * @property string $fechaic
+ * @property string $nombre
+ * @property integer $estado
+ * @property integer $dias
+ *
+ * The followings are the available model relations:
+ * @property Cabecera[] $cabeceras
+ * @property Cuerpo[] $cuerpos
+ * @property Asistencia[] $asistencias
+ */
+class Planilla extends CActiveRecord
+{
+    /**
+     * Crea un ámbito por defecto que permite añadir condiciones al modelo
+     */
+    public $empleado,$fechamin,$fechamax,$fechainic,$fechaseguimiento,$minlactancia,$idhoralactancia,$encargadoplanilla,$cargoencargado;
+    public $mes, $administrativo, $produccion,$unidad, $area,  $idempleado, $separarNombre, $ordenarNombre = false, $mostrarAportacionDesglosada = false, $mostrarBeneficioDesglosada = false, $cuenta, $descripcion,$opciones,$opcionafp,$idplanilla,$opcionCNS,$opcionDescuento=true,$tipocontrato,$tipoindemnizacion,$empresasubempleadora;
+
+    public function defaultScope() {
+        return array(
+            'condition' => $this->getTableAlias(false, false) .
+            '.eliminado = false',
+        );
+    }
+    
+    /**
+     * @return string the associated database table name
+     */
+    public function tableName()
+    {
+            return 'planilla';
+    }
+
+    /**
+     * @return array validation rules for model attributes.
+     */
+    public function rules()
+    {
+            // NOTE: you should only define rules for those attributes that
+            // will receive user inputs.
+            return array(
+                    array('mes, anio, estado, dias', 'numerical', 'integerOnly'=>true),
+                    array('nombrer', 'length', 'max'=>60),
+                    array('cir', 'length', 'max'=>20),
+                    array('usuario, usuariob', 'length', 'max'=>30),
+                    array('nombre', 'length', 'max'=>50),
+                    array('fecha, eliminado, fechadesde, fechahasta, abierta, listaasientos, porsistema, bindemnizacion, bprimeraguinaldo, bsegundoaguinaldo, fechafc, fechaic', 'safe'),
+                    // The following rule is used by search().
+                    // @todo Please remove those attributes that should not be searched.
+                    array('id, mes, anio, nombrer, cir, usuario, fecha, eliminado, usuariob, fechadesde, fechahasta, abierta, listaasientos, porsistema, bindemnizacion, bprimeraguinaldo, bsegundoaguinaldo, fechafc, fechaic, nombre, estado, dias', 'safe', 'on'=>'search'),
+            );
+    }
+
+    /**
+     * @return array relational rules.
+     */
+    public function relations()
+    {
+            // NOTE: you may need to adjust the relation name and the related
+            // class name for the relations automatically generated below.
+            return array(
+                    'cabeceras' => array(self::HAS_MANY, 'Cabecera', 'idplanilla'),
+                    'cuerpos' => array(self::HAS_MANY, 'Cuerpo', 'idplanilla'),
+                    'asistencias' => array(self::HAS_MANY, 'Asistencia', 'idplanilla'),
+            );
+    }
+
+    /**
+     * @return array customized attribute labels (name=>label)
+     */
+    public function attributeLabels()
+    {
+            return array(
+                    'id' => 'ID',
+                    'mes' => 'Mes',
+                    'anio' => 'Anio',
+                    'nombrer' => 'Nombrer',
+                    'cir' => 'Cir',
+                    'usuario' => 'Usuario',
+                    'fecha' => 'Fecha',
+                    'eliminado' => 'Eliminado',
+                    'usuariob' => 'Usuariob',
+                    'abierta' => 'Abierta',
+                    'listaasientos' => 'Listaasientos',
+                    'porsistema' => 'Porsistema',
+                    'bindemnizacion' => 'Bindemnizacion',
+                    'bprimeraguinaldo' => 'Bprimeraguinaldo',
+                    'bsegundoaguinaldo' => 'Bsegundoaguinaldo',
+                    'nombre' => 'Nombre',
+                    'estado' => 'Estado',
+                    'dias' => 'Dias',
+                     'empresasubempleadora'=>'Empresas SubEmpleadoras',
+                    'fechahasta' => 'Hasta',
+                    'fechadesde' => 'Desde',
+                    'fechafc' => 'Fecha Fin de Corte',
+                    'fechaic' => 'Fecha Inicio de Corte',
+            );
+    }
+
+    /**
+     * Retrieves a list of models based on the current search/filter conditions.
+     *
+     * Typical usecase:
+     * - Initialize the model fields with values from filter form.
+     * - Execute this method to get CActiveDataProvider instance which will filter
+     * models according to data in model fields.
+     * - Pass data provider to CGridView, CListView or any similar widget.
+     *
+     * @return CActiveDataProvider the data provider that can return the models
+     * based on the search/filter conditions.
+     */
+    public function search()
+    {
+            // @todo Please modify the following code to remove attributes that should not be searched.
+
+            $criteria=new CDbCriteria;
+
+		$criteria->compare('t.id',$this->id);
+		$criteria->addSearchCondition('t.fechahasta',$this->fechahasta,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.fechadesde',$this->fechadesde,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.fechafc',$this->fechafc,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.fechaic',$this->fechaic,true,'AND','ILIKE');
+		$criteria->addSearchCondition('t.nombre',$this->nombre,true,'AND','ILIKE');
+		$criteria->compare('t.estado',$this->estado);
+		$criteria->addSearchCondition('t.usuario',$this->usuario,true,'AND','ILIKE');
+                $criteria->compare('t.porsistema',true);
+         
+		 if ($this->fecha != Null) {
+		$criteria->addCondition("t.fecha::date = '" . $this->fecha. "'");
+		 }
+		$criteria->compare('t.dias',$this->dias);
+
+            return new CActiveDataProvider($this, array(
+                    'pagination'=>array(
+                        'pageSize'=> Yii::app()->user->getState('pageSize',Yii::app()->params['defaultPageSize']),
+                    ), 
+                    'criteria'=>$criteria,
+                'sort' => array(
+                        'defaultOrder' => 't.id desc ', 
+                     'attributes' => array(
+                         'nombre'=>array(
+                             'asc'=>'t.nombre asc , t.id desc',
+                             'desc'=>'t.nombre desc, t.id desc'
+                         ),
+                         'fechadesde'=>array(
+                             'asc'=>'t.fechadesde asc',
+                             'desc'=>'t.fechadesde desc'
+                             
+                         ),
+                         'fechahasta'=>array(
+                             'asc'=>'t.fechahasta asc',
+                             'desc'=>'t.fechahasta desc'
+                             
+                         ),
+                         'fechaic'=>array(
+                             'asc'=>'t.fechaic asc',
+                             'desc'=>'t.fechaic desc'
+                             
+                         ),
+                         'fechafc'=>array(
+                             'asc'=>'t.fechafc asc',
+                             'desc'=>'t.fechafc desc'
+                             
+                         ),
+                         'estado'=>array(
+                             'asc'=>'t.estado asc',
+                             'desc'=>'t.estado desc'
+                             
+                         ),
+                         'usuario'=>array(
+                             'asc'=>'t.usuario asc',
+                             'desc'=>'t.usuario desc'
+                             
+                         ),
+                         
+                     ))
+            ));
+    }
+
+    /**
+     * @return CDbConnection the database connection used for this class
+     */
+    public function getDbConnection()
+    {
+            return Yii::app()->rrhh;
+    }
+
+    /**
+     * Returns the static model of the specified AR class.
+     * Please note that you should have this exact method in all your CActiveRecord descendants!
+     * @param string $className active record class name.
+     * @return Planilla the static model class
+     */
+    public static function model($className=__CLASS__)
+    {
+            return parent::model($className);
+    }
+
+
+    /**
+     *
+     * Sentencias entes de ejecutar metodo save
+     * Antes de guardar se cambia todos los campos  de tipo character
+     * varying y text a mayúsculas
+     * Si existe el campo fecha, este toma el valor de la fecha actual antes
+     * de almacenarse
+     * Si existe el campo usuario, toma el valor del usuario actual antes de
+     * almacenarse
+     * 
+     */
+    public function beforeSave() {
+		$this->nombrer=strtoupper($this->nombrer);
+		$this->cir=strtoupper($this->cir);
+		$this->usuario= Yii::app()->user->getName();
+		$this->fecha= new CDbExpression('NOW()');
+		$this->usuariob=strtoupper($this->usuariob);
+		$this->listaasientos=strtoupper($this->listaasientos);
+		$this->nombre=strtoupper($this->nombre);
+        return parent::beforeSave();            
+    }
+    /**
+     * 
+     * @param integer $id, id relacionado con el Corte de Planilla
+     * @return boolean , true = Mostrar Botones de Eliminar Corte Y Generar Planilla ,false= Mostrar Botones de Consolidar Planilla, Descargar Reporte de Asistencia, Descargar Reporte de Boletas y Eliminar Planilla
+     */
+    public function MostrarCorte($id)
+    {
+        $corte= Planilla::model()->find('t.id='.SeguridadModule::dec($id));
+        if ($corte->estado==1) {
+         return true;
+        }else{
+            return false;
+        }
+    }
+    /**
+     * 
+     * @param integer $id, id del Corte de Planilla
+     * @return boolean , true= Si se va mostrar el Boton de dar Baja PLanilla y false = si No se va a mostrar el Boton Dar Baja Planilla
+     */ 
+    public function MotrarDarBajaPlanilla($id)
+    {
+       $corte= Planilla::model()->find('t.id='.SeguridadModule::dec($id));
+        if ($corte->estado==2) {
+         return true;
+        }else{
+            return false;
+        }
+        
+    }
+    /**
+     * 
+     * @param integer $id, id del Corte de Planilla
+     * @return boolean,true= Si se va a mostrar el Boton de Consolidar Indemnizacion, false=si No se va a mostrar el boton de Consolidacion de Indemnizacion
+     */
+    public function MotrarCondolidarIndemnizacion($id)
+    {
+       $corte= Planilla::model()->find('t.id='.SeguridadModule::dec($id));
+        if ($corte->estado==3) {
+         return true;
+        }else{
+            return false;
+        }
+        
+    }
+    /**
+     * 
+     * @param integer $id, id del Corte de Planilla
+     * @return boolean , true=Se va a mostrar el boton de Generar Asiento Prefactura Sueldos, false =No se va a mostrar el boton de Generar Asiento Prefactura Sueldos
+     */
+    public function MotrarGenerarAsientoPrefacSueldos($id)
+    {
+       $corte= Planilla::model()->find('t.id='.SeguridadModule::dec($id));
+        if ($corte->estado>=3 && $corte->asientosueldogenerado==false) {
+         return true;
+        }else{
+            return false;
+        }
+        
+    }
+    /**
+     * 
+     * @param integer $id, id del Corte de Planilla
+     * @return boolean, true=Se va a mostrar el boton Generar Asiento Prefactura Lactancia , false= No se va amostrar el boton Generar Asiento Prefactura Lactancia
+     */
+    public function MotrarGenerarAsientoPrefacLactancia($id)
+    {
+       $corte= Planilla::model()->find('t.id='.SeguridadModule::dec($id));
+        if ($corte->estado>=3 && $corte->asientolactanciagenerado==false) {
+         return true;
+        }else{
+            return false;
+        }
+        
+    }
+    /**
+     * 
+     * @param integer $id, id del Corte de Planilla
+     * @return boolean , true=Se va mostrar el boton Generar Asiento Prefactura Bonos que no se Muestran en la Planilla de Sueldos y Salarios
+     */
+    public function MotrarGenerarAsientoPrefacBonos($id)
+    {
+       $corte= Planilla::model()->find('t.id='.SeguridadModule::dec($id));
+        if ($corte->estado>=3 && $corte->asientootrosbonosgenerado==false) {
+         return true;
+        }else{
+            return false;
+        }
+        
+    }
+    /**
+     * 
+     * @param integer $id, id del Corte de Planilla
+     * @return boolean, true= Se va a mostrar el boton de Reporte de Resumen de  Asistencia
+     */
+    public function MotrarPlanillaReporte($id)
+    {
+       $corte= Planilla::model()->find('t.id='.SeguridadModule::dec($id));
+        if ($corte->estado>1) {
+         return true;
+        }else{
+            return false;
+        }
+        
+    }
+    /**
+     * Consolida la Planilla de Indemnizacion
+     * @param integer $id, id del Corte de Planilla
+     * @param integer[] $listaempleados, lista de empleados a los que se les pago su finiquito dentro del Corte de Planilla
+     */
+    public function ConsolidarIndemnizacion($id,$listaempleados) {
+        $cant=count($listaempleados);
+        $usuario = Yii::app()->user->getName();
+        $lista='';
+      for ($i=1; $i <=$cant ; $i++) { 
+        if ($listaempleados[$i]['id']!=='' && $listaempleados[$i]['estado']==1 ) {                 
+            $lista.=$listaempleados[$i]['id'].',';
+        }
+        
+      }
+      if ($lista!=''){
+         $lista= substr($lista, 0, -1); 
+        Yii::app()->rrhh
+            ->createCommand("update cuerpo  set cancelacionporretiro=true  where eliminado=false and idempleado in($lista) and idplanilla=$id")
+            ->execute();  
+      }
+
+            Yii::app()->contabilidad
+            ->createCommand("select  public.registrar_asiento_aguinaldo_idemnizacion($id,'$usuario') ")
+            ->execute();
+                  
+    }
+    /**
+     * Consolida la Planilla de Prefactura de Suledos y Salario
+     * @param integer $id, id  del Corte de Planilla
+     */
+    public function ConsolidarPrefacturaSueldos($id) {
+        $usuario = Yii::app()->user->getName();
+       
+
+        Yii::app()->contabilidad
+            ->createCommand("select  public.generar_asiento_prefacturasueldos($id,'$usuario') ")
+            ->execute();
+                 
+    }
+    /**
+     * Consolida la Planilla de Prefactura de Lactancia
+     * @param integer $id, id del Corte de Planilla
+     */
+    public function ConsolidarPrefacturaLactancia($id) {
+        $usuario = Yii::app()->user->getName();
+        Yii::app()->contabilidad
+            ->createCommand("select  public.generar_asiento_prefacturalactancia($id,'$usuario') ")
+            ->execute();
+                 
+    
+    }
+    /**
+     * Consolida la Planilla de Prefactura de Otros Bonos
+     * @param integer $id, id del Corte de Planilla
+     */
+     public function ConsolidarPrefacturaBonos($id) {
+        $usuario = Yii::app()->user->getName();
+        Yii::app()->contabilidad
+            ->createCommand("select  public.generar_asiento_prefacturaotrosbonos($id,'$usuario') ")
+            ->execute();
+                 
+    }
+
+}

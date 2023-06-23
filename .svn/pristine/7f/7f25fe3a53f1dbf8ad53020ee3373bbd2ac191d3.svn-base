@@ -1,0 +1,621 @@
+var Empleado = new Object();
+Empleado.__proto__ = SystemWindow;
+//variables
+Empleado.nameView = "Empleado";
+Empleado.url = "empleado";
+
+Empleado.init = function() {
+    if(this.action == 'update'||this.action=='Reportecumpleanerodelmes'||this.action=='Reportelistaempleados'||this.action=='Kardexempleado'||this.action=='Asistenciaempleado'||this.action=='Familiaresedades'||this.action=='Horarioempleado'||this.action=='ReportePromedioPersonal'||this.action=='ReporteAntiguedadPersonal'||this.action=='ReporteHorasefectivas'||this.action=='IndiceDesersion'||this.action=='ReporteParaContrato')
+    { this.buttonChange({id: 'save', label: 'Guardar', key: 'G'});
+           
+        $('#' + this.Id('pempleado')).keyup(function(e) {
+            var k = (document.all) ? e.keyCode : e.which;
+            if (k != 37 && k != 38 && k != 39 && k != 40 && k != 13 && k != 9) {
+                Empleado.set('id', '');
+                Empleado.ById('pempleado').style.background = "";
+                
+            }
+            
+        });
+        $('#' + this.Id('pempleado')).blur(function() {
+            if (Empleado.get('id') == '') {
+                this.value = '';
+                Empleado.ById('pempleado').style.background = "";
+                
+            }
+        });
+    
+        if (this.action=='update'){
+        var grid = this.getSGridView('gridEntradasalida');
+        for(var f = 1; f <= grid.rows; f++)
+        {
+            
+            valor=grid.row(f).get('fecha').indexOf("-");
+            if(grid.row(f).get('idcategoriatipo') == 1|| (grid.row(f).get('idcategoriatipo') == 5  ))
+            {
+                var color = '#d8e4bc';
+                grid.row(f).attributes('fecha', {'style': {'background': color}});
+                grid.row(f).attributes('es', {'style': {'background': color}});
+                grid.row(f).attributes('hmin', {'style': {'background': color}});
+                grid.row(f).attributes('autorizado', {'style': {'background': color}});
+                grid.row(f).attributes('tipo', {'style': {'background': color}});
+            }
+            else
+            {
+                grid.row(f).attributes('fecha', {'style': {'background': 'none'}});
+                grid.row(f).attributes('es', {'style': {'background': 'none'}});
+                grid.row(f).attributes('hmin', {'style': {'background': 'none'}});
+                grid.row(f).attributes('autorizado', {'style': {'background': 'none'}});
+                grid.row(f).attributes('tipo', {'style': {'background': 'none'}});
+            }
+        }
+    }
+
+    }
+}
+
+Empleado.options = function () {
+    this.setActions('create', {
+        WindowTitle: 'Crear Empleado',
+        initButtons: 'save,cancel',
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    this.setActions('update', {        
+        WindowTitle: 'Revisar Asistencia Empleado',
+        initButtons: 'save,cancel',
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+     this.setActions('Reportecumpleanerodelmes', {        
+        WindowTitle: 'Reporte Cumpleañero del Mes',
+        initButtons: 'planilla',
+        endButtons: 'planilla',
+         WindowWidth: 300,
+        WindowHeight: 200, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    this.setActions('Kardexempleado', {        
+        WindowTitle: 'Kardex Empleado',
+        initButtons: 'kardex',
+        endButtons: 'kardex',
+         WindowWidth: 400,
+        WindowHeight: 400, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+     this.setActions('Horarioempleado', {        
+        WindowTitle: 'Reporte Horario Empleado',
+        initButtons: 'reporte',
+        endButtons: 'reporte',
+         WindowWidth: 400,
+        WindowHeight: 400, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+     this.setActions('Familiaresedades', {        
+        WindowTitle: 'Reporte de Familiares y Edades',
+        initButtons: 'impresionxls,impresion',      
+         WindowWidth: 400,
+        WindowHeight: 300, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+     this.setActions('Asistenciaempleado', {        
+        WindowTitle: 'Asistencia Empleado',
+        initButtons: 'asistencia',
+        endButtons: 'asistencia',
+         WindowWidth: 400,
+        WindowHeight: 250, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    this.setActions('ReportePromedioPersonal', {        
+        WindowTitle: 'Reporte Promedio Personal',
+        initButtons: 'reporte',
+        endButtons: 'reporte',     
+        WindowWidth: 400,
+        WindowHeight: 300, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+        this.setActions('ReporteAntiguedadPersonal', {        
+        WindowTitle: 'Reporte Edad Antiguedad Personal',
+        initButtons: 'reporte',
+        endButtons: 'reporte',     
+        WindowWidth: 400,
+        WindowHeight: 500, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+     this.setActions('ReporteHorasefectivas', {        
+        WindowTitle: 'Reporte Horas Efectivas',
+        initButtons: 'reporte',
+        endButtons: 'reporte',     
+        WindowWidth: 400,
+        WindowHeight: 580, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    
+    this.setActions('ReporteParaContrato', {        
+        WindowTitle: 'Reporte Para Contrato',
+        initButtons: 'reporte',
+        endButtons: 'reporte',     
+        WindowWidth: 480,
+        WindowHeight: 500, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    this.setActions('IndiceDesersion', {        
+        WindowTitle: 'Reporte Índice Deserción',
+        initButtons: 'reporte',
+        endButtons: 'reporte',     
+        WindowWidth: 480,
+        WindowHeight: 350, 
+        layerEndOn: false,
+        ableBackWindow: true
+    });
+    var options = {
+        WindowName: this.nameView,
+        WindowTitle: 'Empleado',
+        WindowWidth: 800,
+        WindowHeight: 420,
+        WindowInitFunction: '',
+        WindowCloseFunction: '',
+        WindowMaxFunction: '',
+        WindowMinFunction: '',
+        WindowOnBackground: true,
+        typeLoading: 'on'// on,off,onMain
+    };
+    return options;
+}
+Empleado.Reportecumpleanerodelmes=function(){
+    this.action = 'Reportecumpleanerodelmes';   
+    this.open(this.getOptions()); 
+}
+Empleado.Kardexempleado=function(){
+    this.action = 'Kardexempleado';   
+    this.open(this.getOptions()); 
+}
+Empleado.Horarioempleado=function(){
+    this.action = 'Horarioempleado';   
+    this.open(this.getOptions()); 
+}
+Empleado.Asistenciaempleado=function(){
+    this.action = 'Asistenciaempleado';   
+    this.open(this.getOptions()); 
+}
+Empleado.Familiaresedades=function(){
+    this.action = 'Familiaresedades';   
+    this.open(this.getOptions()); 
+}
+Empleado.ReportePromedioPersonal=function(){
+    this.action = 'ReportePromedioPersonal';   
+    this.open(this.getOptions()); 
+}
+Empleado.ReporteAntiguedadPersonal=function(){
+    this.action = 'ReporteAntiguedadPersonal';   
+    this.open(this.getOptions()); 
+}
+Empleado.ReporteHorasefectivas=function(){
+    this.action = 'ReporteHorasefectivas';   
+    this.open(this.getOptions()); 
+}
+Empleado.IndiceDesersion=function(){
+    this.action = 'IndiceDesersion';   
+    this.open(this.getOptions()); 
+}
+Empleado.ReporteParaContrato=function(){
+    this.action = 'ReporteParaContrato';   
+    this.open(this.getOptions()); 
+}
+Empleado.beforeCreate = function () {
+    var error = false;//false es no existe error antes de crear formulario
+    return error;
+}
+Empleado.afterCreate = function () {
+    Empleado.reload();
+}
+
+Empleado.beforeUpdate = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Empleado.afterUpdate = function () {
+    Empleado.closeWindow();
+}
+Empleado.beforeReportecumpleanerodelmes = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Empleado.afterReportecumpleanerodelmes = function () {
+    Empleado.closeWindow();
+}
+Empleado.beforeKardexempleado = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Empleado.afterKardexempleado = function () {
+    Empleado.closeWindow();
+}
+Empleado.beforeHorarioempleado = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Empleado.afterHorarioempleado = function () {
+    Empleado.closeWindow();
+}
+Empleado.beforeAsistenciaempleado = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Empleado.afterAsistenciaempleado = function () {
+    Empleado.closeWindow();
+}
+Empleado.beforeFamiliaresedades = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Empleado.afterFamiliaresedades = function () {
+    Empleado.closeWindow();
+}
+Empleado.beforeReportePromedioPersonal = function () {
+    var error = false;//false es no existe error antes de crear formulario
+    return error;
+}
+Empleado.afterReportePromedioPersonal = function () {
+    Empleado.reload();
+}
+Empleado.beforeReporteAntiguedadPersonal = function () {
+    var error = false;//false es no existe error antes de crear formulario
+    return error;
+}
+Empleado.afterReporteAntiguedadPersonal = function () {
+    Empleado.reload();
+}
+Empleado.beforeReporteHorasefectivas = function () {
+    var error = false;//false es no existe error antes de crear formulario
+    return error;
+}
+Empleado.afterReporteHorasefectivas = function () {
+    Empleado.reload();
+}
+Empleado.beforeIndiceDesersion = function () {
+    var error = false;//false es no existe error antes de actulizar formulario
+    return error;
+}
+Empleado.afterIndiceDesersion = function () {
+    Empleado.closeWindow();
+}
+Empleado.Calcular=function (letra) {
+   
+    var nombre='gridEntradasalida'+letra;
+    //(grid.rowSelected().isFocus('pedidos'))
+    var grid = this.getSGridView(nombre);
+    this.gridSearchVars('gridEntradasalida'+letra, '&idcategoriatipo=' + grid.rowSelected().get('idcategoriatipo') ); 
+
+     if (grid.rowSelected().get('idcategoriatipo')=='1' ||grid.rowSelected().get('idcategoriatipo')=='5') {
+       var hora=grid.rowSelected().get('horainfo');
+       var minuto=grid.rowSelected().get('minutoinfo');
+       var minutos=grid.rowSelected().get('hmin');
+       if (grid.rowSelected().isFocus('horainfo')) {
+        ////validaciones para hora
+           if (hora>=24) {
+              grid.rowSelected().set('horainfo',24);
+              grid.rowSelected().set('minutoinfo',0);
+             grid.rowSelected().set('hmin',1440);
+
+           }else{
+           grid.rowSelected().set('hmin',parseInt(hora*60 ));
+            grid.rowSelected().set('minutoinfo',0);
+
+           }
+        /////fin validaciones para hora
+
+       }else{
+        if (grid.rowSelected().isFocus('minutoinfo')) {
+            //////////incio validacion para minutosinfo
+           if (minuto>60) {
+               minuto=59;
+               if (hora==24) {
+                   minuto=0;
+               }
+                       
+            grid.rowSelected().set('hmin',parseInt(hora*60+minuto ));
+            grid.rowSelected().set('minutoinfo',parseInt(minuto ));
+            grid.rowSelected().set('hora',parseInt(hora ));
+           }else{
+                 if (hora==24) {
+                     minuto=0;
+                     grid.rowSelected().set('minutoinfo',parseInt(minuto ));
+                   }
+                 grid.rowSelected().set('hmin',parseInt(hora*60+minuto ));
+            
+            
+            }
+              ////////// fin validacion para minutosinfo
+        }
+       }
+
+    }
+}
+Empleado.AceptarCambiosEspecial = function(input, letra) {
+  
+    var grid = this.getSGridView('gridEntradasalidaEspecial'+letra);
+    this.gridSearchVars('gridEntradasalidaEspecial'+letra, '&idcategoriatipo=' + grid.rowSelected().get('idcategoriatipo') ); 
+    var hora=grid.rowSelected().get('horainfo');
+    var minuto=grid.rowSelected().get('minutoinfo');
+    var minutos=grid.rowSelected().get('minutos');
+    if (grid.rowSelected().isFocus('horainfo')) {
+        ////validaciones para hora
+        if (hora>=24) {
+           grid.rowSelected().set('horainfo',24);
+           grid.rowSelected().set('minutoinfo',0);
+           grid.rowSelected().set('minutos',1440);
+
+        }else{
+           grid.rowSelected().set('minutos',parseInt(hora*60 ));
+           grid.rowSelected().set('minutoinfo',0);
+
+       }
+        /////fin validaciones para hora
+
+       }else{
+        if (grid.rowSelected().isFocus('minutoinfo')) {
+          //////////incio validacion para minutosinfo
+         if (minuto>60) {
+             minuto=59;
+             if (hora==24) {
+                 minuto=0;
+                }
+            grid.rowSelected().set('minutos',parseInt(hora*60+minuto ));
+            grid.rowSelected().set('minutoinfo',parseInt(minuto ));
+            grid.rowSelected().set('hora',parseInt(hora ));
+         }else{
+            if (hora==24) {
+                minuto=0;
+                grid.rowSelected().set('minutoinfo',parseInt(minuto ));
+             }
+             grid.rowSelected().set('minutos',parseInt(hora*60+minuto ));
+         }
+              ////////// fin validacion para minutosinfo
+        
+       }
+
+    }
+        
+    
+}
+
+Empleado.mostrar_asistencia_fechas=function(){
+ var desde=$('#'+Empleado.Id('fechadesde')).val();
+ var res = desde.split("-");
+ var f=res[2]+'-'+res[1]+'-'+res[0];
+ var desde1= new Date(f);
+ var hasta=$('#'+Empleado.Id('fechahasta')).val()
+ res = hasta.split("-");
+ f=res[2]+'-'+res[1]+'-'+res[0];
+ var hasta1= new Date(f);
+ $('#'+Empleado.Id('contenedorAsistencia')).empty();
+
+ if(desde1<=hasta1){
+   
+    $.ajax({
+        'type':'post',
+        'url':'rrhh/empleado/asistenciaEmpleadoFechas',
+        'data':{idempleado:$('#'+Empleado.Id('idempleado')).val(),nombre:Empleado.groupForm,desde:desde,hasta:hasta},
+        success:function (resp) {
+            $('#'+Empleado.Id('contenedorAsistencia')).append(resp);
+
+       },
+        error:function () {
+            alert('ocurrio un error al optener los datos del empleado...');
+        }
+
+    });
+    
+ }
+    
+ 
+
+}
+
+Empleado.descargaReportecumpleanierodelmes=function(){
+  
+    var datos = this.prepareSend($('#' + this.groupForm).serialize());
+    var url = 'Imprimirreportecumpleanierodelmes?' + datos;
+    this.openUrl(url);
+    
+}
+Empleado.Reportelistaempleados=function(){   
+    var url = 'coreT/rrhh/empleado/Reportelistaempleados' ;    
+    this.openUrl(url);
+    
+}
+Empleado.Reportedatosempleados=function(){   
+    var url = 'coreT/rrhh/empleado/Reportedatosempleados' ;    
+    this.openUrl(url);
+    
+}
+Empleado.descargaReportekardexempleado=function(){
+   var error=false;
+    if($('#'+Empleado.Id('fechadesde')).val()=='' && $('#'+Empleado.Id('fechahasta')).val()==''){
+       error=true;
+       $('#'+Empleado.Id('fechadesde')).css('background-color','#f68c8c');
+       $('#'+Empleado.Id('fechahasta')).css('background-color','#f68c8c');
+        
+    }
+        
+    else if($('#'+Empleado.Id('fechadesde')).val()==''){
+       error=true;
+       $('#'+Empleado.Id('fechadesde')).css('background-color','#f68c8c');
+       
+   }
+   else if($('#'+Empleado.Id('fechahasta')).val()==''){
+        error=true;
+       $('#'+Empleado.Id('fechahasta')).css('background-color','#f68c8c');
+       
+   }else{
+     $('#'+Empleado.Id('fechadesde')).css('background-color','#ffffff');
+     $('#'+Empleado.Id('fechahasta')).css('background-color','#ffffff');
+     $('#'+Empleado.Id('pempleado')).css('background-color','#ffffff');
+     var datos = this.prepareSend($('#' + this.groupForm).serialize());
+     var url = 'Imprimirkardexempleado?' + datos;
+     this.openUrl(url);   
+   }
+   if (error){
+       Empleado.showMessageError('Revise sus datos...!! '); 
+   }    
+    
+  
+}
+Empleado.descargaReporteasistenciaempleado=function(){
+   if ($('#'+Empleado.Id('pempleado')).val()=='')
+    {
+         $('#'+Empleado.Id('pempleado')).css('background-color','#f68c8c');
+         Empleado.showMessageError('Revise sus datos...!! ');
+    }else{
+         $('#'+Empleado.Id('pempleado')).css('background-color','#ffffff');
+    var datos = this.prepareSend($('#' + this.groupForm).serialize());
+    var url = 'Imprimirasistenciaempleado?' + datos;
+    this.openUrl(url);
+    }
+  
+}
+Empleado.descargaReportefamiliaresedades=function(){
+    var datos = this.prepareSend($('#' + this.groupForm).serialize());
+    var url = 'Imprimirfamiliaresedades?' + datos;
+    this.openUrl(url);
+    
+  
+}
+
+Empleado.descargaReportefamiliaresedadesxls=function(){
+    var datos = this.prepareSend($('#' + this.groupForm).serialize()) + this.gestionSchemaMain();
+    this.downloadFile(this.urlIni+this.url+'/Imprimirfamiliaresedadesxls?' + datos);   
+  
+}
+Empleado.descargaReportehorarioempleado=function(){
+   if ($('#'+Empleado.Id('fechadesde')).val()=='')
+    {
+         $('#'+Empleado.Id('fechadesde')).css('background-color','#f68c8c');
+         Empleado.showMessageError('Revise sus datos...!! ');
+    }else if($('#'+Empleado.Id('fechahasta')).val()==''){
+         $('#'+Empleado.Id('fechahasta')).css('background-color','#f68c8c');
+         Empleado.showMessageError('Revise sus datos...!! ');
+    }else{
+         $('#'+Empleado.Id('fechadesde')).css('background-color','#ffffff');
+         $('#'+Empleado.Id('fechahasta')).css('background-color','#ffffff');
+    var datos = this.prepareSend($('#' + this.groupForm).serialize());
+    var url = 'Imprimirhorarioempleado?' + datos;
+    this.openUrl(url);
+  }
+   
+}
+Empleado.descargaReportePromedioPersonal=function(){      
+ if ($('#'+Empleado.Id('fechadesde')).val()!==''&& $('#'+Empleado.Id('fechahasta')).val()!=='')
+ { var datos = this.prepareSend($('#' + this.groupForm).serialize()) + this.gestionSchemaMain();
+    this.downloadFile(this.urlIni+this.url+'/ImprimirReportePromedioPersonal?' + datos);  }
+else{ if ($('#'+Empleado.Id('fechadesde')).val()=='')
+    {
+         $('#'+Empleado.Id('fechadesde')).css('background-color','#f68c8c');
+         
+    }if($('#'+Empleado.Id('fechahasta')).val()==''){
+         $('#'+Empleado.Id('fechahasta')).css('background-color','#f68c8c');
+        
+    }
+     Empleado.showMessageError('Revise sus datos...!! ');
+    }
+}
+Empleado.descargaReporteAntiguedadPersonal=function(){
+   if ($('#'+Empleado.Id('fechadesde')).val()=='')
+    {
+         $('#'+Empleado.Id('fechadesde')).css('background-color','#f68c8c');
+         Empleado.showMessageError('Revise sus datos...!! ');
+     }
+   else{
+         $('#'+Empleado.Id('fechadesde')).css('background-color','#ffffff');
+    var datos = this.prepareSend($('#' + this.groupForm).serialize());
+    var url = 'ImprimirReporteAntiguedadPersonal?' + datos;
+    this.openUrl(url);
+  }
+   
+}
+Empleado.descargaReporteHorasEfectivas=function(){   
+    var error = false;//false es no existe error antes de crear formulario
+    var cantidad=0;
+    if ($('#'+Empleado.Id('fechadesde')).val()=='')
+    {
+         $('#'+Empleado.Id('fechadesde')).css('background-color','#f68c8c');
+         ++cantidad;
+    }else if($('#'+Empleado.Id('fechahasta')).val()==''){
+         $('#'+Empleado.Id('fechahasta')).css('background-color','#f68c8c');
+        ++cantidad;
+    }else if($('#'+Empleado.Id('sexo')).val()==''){
+         $('#'+Empleado.Id('sexo')).css('background-color','#f68c8c');
+        ++cantidad;
+    }else{
+         $('#'+Empleado.Id('fechadesde')).css('background-color','#ffffff');
+         $('#'+Empleado.Id('fechahasta')).css('background-color','#ffffff');
+         $('#'+Empleado.Id('sexo')).css('background-color','#ffffff');
+         
+    var datos = this.prepareSend($('#' + this.groupForm).serialize()) + this.gestionSchemaMain();
+    this.downloadFile(this.urlIni+this.url+'/ImprimirReporteHorasefectivas?' + datos); 
+    
+  }
+  if(cantidad>0){
+     Empleado.showMessageError('Revise sus datos...!! ');
+    
+  } 
+}
+Empleado.actualizarFecha=function(valor)
+{
+   $('#' + Empleado.Id("fechahasta")).datepicker("option", "minDate", valor);
+}
+Empleado.descargarReporte=function(ruta){
+    
+    var cantidad=0;
+  if($('#'+Empleado.Id('fechadesde')).val()=='')
+  {     $('#'+Empleado.Id('fechadesde')).css('background-color','#f68c8c');
+        cantidad+=1;        
+  }
+  else{     
+        $('#'+Empleado.Id('fechadesde')).css('background-color','#ffffff');    
+  }
+  if($('#'+Empleado.Id('fechahasta')).val()=='')
+  {     $('#'+Empleado.Id('fechahasta')).css('background-color','#f68c8c');
+        cantidad+=1;        
+  }
+  else{     
+        $('#'+Empleado.Id('fechahasta')).css('background-color','#ffffff');    
+  }
+  if(ruta=='DescargarReporteIParaContrato'){
+    if ($('#s2id_' + Empleado.groupForm + '_tipocontrato>ul>li[class="select2-search-choice"]').length > 0 && $('#s2id_' + Empleado.groupForm + '_tipo>ul>li[class="select2-search-choice"]').length > 0 && cantidad==0) {
+           var datos = this.prepareSend($('#' + this.groupForm).serialize()) + this.gestionSchemaMain();
+           this.downloadFile(this.urlIni + this.url + '/'+ruta+'?' + datos );
+
+       } else {
+          Empleado.showMessageError('Revise sus datos...!! ');
+       }
+  }else{
+       if ($('#s2id_' + Empleado.groupForm + '_tipocontrato>ul>li[class="select2-search-choice"]').length > 0 && cantidad==0) {
+        var datos = this.prepareSend($('#' + this.groupForm).serialize()) + this.gestionSchemaMain();
+        this.downloadFile(this.urlIni + this.url + '/'+ruta+'?' + datos );
+    
+    } else {
+       Empleado.showMessageError('Revise sus datos...!! ');
+    }
+  }
+}
+Empleado.ActualizarGestion=function(gestion){
+    $('#'+Empleado.Id('fechahasta')).val(gestion);
+}
+Empleado.ValidarGestion=function(){
+    aniodesde=parseInt( $('#'+Empleado.Id('fechadesde')).val());
+    aniohasta=parseInt( $('#'+Empleado.Id('fechahasta')).val());
+    if(aniohasta<aniodesde){
+     $('#'+Empleado.Id('fechahasta')).val(aniodesde);   
+    }    
+}

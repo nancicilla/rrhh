@@ -1,0 +1,85 @@
+var admPlanilla = new Object();
+admPlanilla.__proto__ = SystemSearch;
+
+//declare var
+admPlanilla.nameView = "admPlanilla";
+admPlanilla.url = "planilla/admin";
+admPlanilla.idContainer = "";
+admPlanilla.nextView = "Planilla";
+//functions
+admPlanilla.init = function () {
+    try {
+         
+    } catch (err) {
+        alert('Error al cargar admPlanilla.init()');
+    }
+}
+
+admPlanilla.options = function () {
+    var afterFunction = '';
+    var updateFunction = 'THIS.search(Planilla.idKeySend());';
+    //para actualizar la lista si actualiza/borrar/crea un formulario
+    var idKey = SGridView.getSelected('id');
+    var varsSend = "";
+    var url = "";
+    var nameContainer = "";
+
+    var options = {
+        idKey: idKey,
+        afterFunction: afterFunction,
+        updateFunction: updateFunction,
+        varsSend: varsSend
+    };
+
+    return options;
+
+}   
+
+admPlanilla.Planilla = function () {
+    this.set_url();
+    var THIS = this;
+    Planilla.Planilla(THIS.getOptions());
+}
+admPlanilla.Consolidar= function () {
+    this.set_url();
+    var THIS = this;
+    Planilla.Consolidar(THIS.getOptions());
+}
+admPlanilla.Gplanilla= function () {
+    this.set_url();
+    var THIS = this;  
+    Planilla.Gplanilla(THIS.getOptions());
+}
+admPlanilla.GenerarPlanilla=function () {
+  
+var id = SGridView.getSelected('id');
+    
+this.set_url();
+var THIS = this;
+var options=THIS.getOptions();
+options.updateFunction = 'admPlanilla.search();';
+options.idKey = id;
+   
+    Planilla.GenerarPlanilla(options);
+}
+admPlanilla.ConsolidarIndemnizacion= function () {
+    this.set_url();
+    var THIS = this;
+    Planilla.ConsolidarIndemnizacion(THIS.getOptions());
+}
+admPlanilla.ConsolidarPrefacturaSueldos=function(){
+     this.set_url();
+    var THIS = this;
+    Planilla.ConsolidarPrefacturaSueldos(THIS.getOptions());
+}
+admPlanilla.ConsolidarPrefacturaLactancia=function(){
+     this.set_url();
+    var THIS = this;
+    Planilla.ConsolidarPrefacturaLactancia(THIS.getOptions());
+}
+admPlanilla.ConsolidarPrefacturaBonos=function(){
+     this.set_url();
+    var THIS = this;
+    Planilla.ConsolidarPrefacturaBonos(THIS.getOptions());
+}
+

@@ -1,0 +1,552 @@
+<?php
+/*
+ * HistorialbancohorasController.php
+ *
+ * Version 0.$Rev: 286 $
+ *
+ * Creacion: 02/10/2020
+ *
+ * Ultima Actualizacion: $Date: 2015-10-13 09:08:14 -0400 (mar 13 de oct de 2015) $:
+ * 
+ * Copyright 2015 SOLUR SRL.
+ * Monteagudo esq. Los Sauces, Sucre, Bolivia.
+ * Todos los derechos reservados.
+ *
+ * Este software es información confidencial y de propiedad de SOLUR SRL.
+ * Usted no podrá divulgar dicha Información Confidencial y la utilizará 
+ * únicamente de acuerdo con los términos del acuerdo de licencia con SOLUR SRL.
+ */
+class HistorialbancohorasController extends Controller
+{
+	 /*
+     * IMPORTANTE!!!
+     * Los métodos filters(),_publicActionsList() y accessRules() deben copiarse
+     * tal cual en todos los controladores del proyecto
+     */
+    
+    /* 
+     * se debe usar este método filters en todos los controladores para permitir
+     * filtrar si el usuario tiene acceso a las acciones y controlador o no, 
+     */
+   
+    public function filters()
+    {
+        return array_merge(
+            array(
+                'accessControl',
+                array('CrugeUiAccessControlFilter', 'publicActions' => self::_publicActionsList()),
+            )
+        );
+    } 
+    
+    /* 
+     * en este array deben ir las acciones publicas del modulo, las que se 
+     * pueden acceder sin necesitar permisos, por defecto todas las acciones
+     * se acceden solo con autorizacion, por eso el array no tiene acciones
+     */
+    private function _publicActionsList()
+    {
+        //en este array deben ir las acciones publicas del modulo, las que se 
+        //pueden acceder sin necesitar permisos, por defecto todas las acciones
+        //se acceden solo con autorizacion, por eso el array no tiene acciones
+        return array(
+            '',          
+        );
+    }
+    
+    public function accessRules()
+    {
+        return array(
+            array(
+                'allow',
+                'actions' => self::_publicActionsList(),
+                'users' => array('*'),
+            ),
+            array(
+                'allow',
+                'users' => array('@'),
+            ),
+            array(
+                'deny', // deny all users
+                'users' => array('*'),
+            ),
+        );
+    }
+
+    /**
+     * Creates a new model.
+     */
+    public function actionCreate()
+    {
+        Yii::app()->getClientScript()->scriptMap=array('jquery.js'=>false, 'jquery.ui.js'=>false, 'jquery-ui.min.js'=>false);
+        
+        $model=new Historialbancohoras;
+        $model->mostrar='none';
+        $model->scenario='create';
+
+        if(isset($_POST['Historialbancohoras'])){
+                $model->attributes=$_POST['Historialbancohoras'];
+                $model->hi=$_POST['Historialbancohoras']['hi'];
+                $model->mi=$_POST['Historialbancohoras']['mi'];
+                $model->hs=$_POST['Historialbancohoras']['hs'];
+                $model->ms=$_POST['Historialbancohoras']['ms'];
+                if($model->tipo==true){
+                    $model->fechahasta=$model->fechadesde;
+                }
+                if ($model->hi<10){
+                    $model->hi='0'.$model->hi;
+                }
+                if ($model->hs<10){
+                    $model->hs='0'.$model->hs;
+                }
+                if ($model->mi<10){
+                    $model->mi='0'.$model->mi;
+                }
+                if ($model->ms<10){
+                    $model->ms='0'.$model->ms;
+                }
+                
+                $model->horainicio=$model->hi.':'.$model->mi;
+                $model->horafin=$model->hs.':'.$model->ms;
+                $observacion= Yii::app()->rrhh
+                   ->createCommand("SELECT observacion_permisos_pvb(".$model->idempleado.",'".$model->fechadesde."'::date,'".$model->fechahasta."'::date,'".$model->tipo."'::boolean,'".$model->horainicio."','".$model->horafin."') as sms")->queryScalar();
+                if($observacion==''){
+                    $historial=Historialbancohoras::model()->registrar_enbancohoras($model->idempleado,$model->fechadesde,$model->fechahasta,$model->fechasolicitud,$model->horainicio,$model->horafin,$model->tipo, strtoupper( $model->descripcion));
+                    if($historial==''){                       
+                        echo System::dataReturn('Creación exitosa!', array('id' => SeguridadModule::enc($model->id)));
+                        return;
+                    } else {
+                        echo System::hasErrors($historial, $model);
+                       return;
+                    }
+                  }else{
+                     echo System::hasErrors($observacion, $model);
+                }
+        }
+
+        $this->renderPartial('create',array(
+            'model'=>$model,
+        ), false, true);
+    }
+
+    /**
+     * Updates a particular model.
+     * @param integer $id the ID of the model to be updated
+     */
+    public function actionUpdate($id)
+    {
+        Yii::app()->getClientScript()->scriptMap=array('jquery.js'=>false, 'jquery.ui.js'=>false, 'jquery-ui.min.js'=>false);
+        
+        $model=$this->loadModel(SeguridadModule::dec($id));
+        $horai=explode(':',$model->horainicio);
+        $horaf=explode(':',$model->horafin);
+        $model->hi=intval($horai[0]);
+        $model->mi=intval($horai[1]);
+        $model->hs=intval($horaf[0]);
+        $model->ms=intval($horaf[1]);        
+        $model->fechadesde=date ("d-m-Y",strtotime( $model->fechadesde));
+        $model->fechahasta=date ("d-m-Y",strtotime( $model->fechahasta));
+        $model->fechasolicitud=date ("d-m-Y",strtotime( $model->fechasolicitud));
+        $horasbanco=Yii::app()->rrhh->createCommand("select canthoras ||' '|| respuesta as r from dame_horas_bancohoras(".$model->idempleado.") ")->queryScalar();
+        $intervalohoras=Yii::app()->rrhh->createCommand("select hi,mi,hs,ms from dame_horai_horas(".$model->idempleado.",'".$model->fechadesde."')")->queryAll()[0];
+        $horario='';
+        
+        if ($model->tipo==true){
+            $ver = Yii::app()->rrhh
+               ->createCommand("SELECT  dame_horario_empleado(".$model->idempleado.",'".$model->fechadesde."'::date) as sms")
+               ->queryAll();
+            $horario= '<div class="alert alert-info">'.$ver[0]['sms'].'</div>';
+        }
+        
+        $fechaminima=Yii::app()->rrhh->createCommand("select case  when(select   fechafc as fecha from planilla where eliminado=false and estado=3  order by id desc  limit 1) is null then (select to_char((valor::date+1),'dd-mm-YYYY') from general.configuracion where id=26 ) else (select  to_char((fechafc+1),'dd-mm-YYYY') from planilla where eliminado=false and estado=3  order by id desc  limit 1 )end  as fecha ")->queryScalar();
+  
+
+
+        if(isset($_POST['Historialbancohoras']))
+        {
+            $model->attributes=$_POST['Historialbancohoras'];
+            
+           
+            if ($model->tipo=='1'){
+                $model->hi=$_POST['Historialbancohoras']['hi'];
+                $model->mi=$_POST['Historialbancohoras']['mi'];
+                $model->hs=$_POST['Historialbancohoras']['hs'];
+                $model->ms=$_POST['Historialbancohoras']['ms'];
+                if ($model->hi<10){
+                    $model->hi='0'.$model->hi;
+                }
+                if ($model->hs<10){
+                    $model->hs='0'.$model->hs;
+                }
+                if ($model->mi<10){
+                    $model->mi='0'.$model->mi;
+                }
+                if ($model->ms<10){
+                    $model->ms='0'.$model->ms;
+                }
+                $model->horainicio=$model->hi.':'.$model->mi;
+                $model->horafin=$model->hs.':'.$model->ms;
+                $model->fechahasta=$model->fechadesde;
+            }else
+            $model->tipo=0;
+            $observacion= Yii::app()->rrhh
+                    ->createCommand("SELECT observacion_permisos_pvb_update(".$model->id.",".$model->idempleado.",'".$model->fechadesde."'::date,'".$model->fechahasta."'::date,'".$model->tipo."'::boolean,'".$model->horainicio."','".$model->horafin."') as sms")
+                    ->queryScalar();
+            if($observacion==''){
+                $historial=Historialbancohoras::model()->actualizar_enbancohoras($model->id,$model->fechadesde,$model->fechahasta,$model->fechasolicitud,$model->horainicio,$model->horafin,$model->tipo,$model->descripcion);
+                if($historial==''){ 
+                echo System::dataReturn('', array('id' => SeguridadModule::enc($model->id)));
+                return;
+                } else {
+                    echo System::hasErrors($historial, $model);
+                    return;
+                }
+            }else{
+                echo System::hasErrors($observacion, $model);
+                    return;
+            }
+        
+            }
+
+        $this->renderPartial('update',array(
+            'model'=>$model,
+            'horasbanco'=>$horasbanco,
+            'horario'=>$horario,
+            'intervalohoras'=>$intervalohoras,
+            'fechaminima'=>$fechaminima
+        ), false, true);
+    }
+
+    /**
+     * Deletes safely a particular model.
+     * If deletion is successful, the browser will be redirected to the 'admin' page.
+     * @param integer $id the ID of the model to be deleted
+     */
+    public function actionDelete($id)
+    {   $usuario= Yii::app()->user->getName();
+        $id=SeguridadModule::dec($id);
+         
+         Yii::app()->rrhh
+                ->createCommand("select dar_baja_bancohoras($id,'$usuario')")
+                ->execute();
+        self::actionAdmin();
+    }
+
+    /**
+     * Manages all models.
+     */
+    public function actionAdmin()
+    {
+        Yii::app()->getClientScript()->scriptMap = array('jquery.js' => false, 'jquery.ui.js' => false, 'jquery-ui.min.js' => false);
+
+        $model=new Historialbancohoras('search');
+        $model->unsetAttributes();  // clear any default values
+        
+        if (isset($_GET['pageSize'])) {
+            Yii::app()->user->setState('pageSize', (int) $_GET['pageSize']);
+        } else {
+            Yii::app()->user->setState('pageSize', Yii::app()->params['defaultPageSize']);
+        }           
+
+        if(isset($_GET['Historialbancohoras'])){
+                $model->attributes=$_GET['Historialbancohoras'];
+                if (!$model->validate()) {
+                    echo System::hasErrorSearch($model);
+                    return;
+                }
+        }        
+
+        $this->renderPartial('admin',array(
+            'model'=>$model,
+        ), false, true);
+    }
+
+	/**
+	 * Returns the data model based on the primary key given in the GET variable.
+	 * If the data model is not found, an HTTP exception will be raised.
+	 * @param integer $id the ID of the model to be loaded
+	 * @return Historialbancohoras the loaded model
+	 * @throws CHttpException
+	 */
+	public function loadModel($id)
+	{
+		$model=Historialbancohoras::model()->findByPk($id);
+		if($model===null)
+			throw new CHttpException(404,'The requested page does not exist.');
+		return $model;
+	}
+
+	/**
+	 * Performs the AJAX validation.
+	 * @param Historialbancohoras $model the model to be validated
+	 */
+	protected function performAjaxValidation($model)
+	{
+		if(isset($_POST['ajax']) && $_POST['ajax']==='historialbancohoras-form')
+		{
+			echo CActiveForm::validate($model);
+			Yii::app()->end();
+		}
+    }
+    /**
+     * @param integer $_POST['ide'], el id del empleado del cual queremos saber su informacion
+     */
+    public function actionDameInformacionEmpleado()
+    {
+        $idempleado=$_POST['ide'];  
+        $usuario= $usuario= Yii::app()->user->getName();
+        $resp=Yii::app()->rrhh->createCommand("select canthoras,respuesta from dame_horas_bancohoras(".$idempleado.") ")->queryAll();
+        $fechaminima= Yii::app()->rrhh->createCommand("select to_char((select   damefechaminima_permisovacacion($idempleado,1)),'dd-mm-YYYY')")->queryScalar(); 
+        $observacion='';
+         $r=Yii::app()->rrhh->createCommand("select count( damemovimiento_fecha(now():: date,$idempleado)) as r")->queryScalar();
+         if ($r==0) {
+           $resp[0]['observacion']='<div class="alert alert-info">NO TIENE ASIGNADO UN HORARIO...</div>';
+         }
+
+        echo CJSON::encode( array('canthoras' =>$resp[0]['canthoras'],'respuesta' =>$resp[0]['respuesta'] ,'observacion'=>$observacion,'fechaminima'=>$fechaminima  ));
+    }
+    /**
+     * @param integer $_POST['ide'], fecha minima a la que se le puede cargar un permiso
+     */
+    public function actionDamefechaminima(){
+         $idempleado=$_POST['ide'];  
+         $fechaminima= Yii::app()->rrhh->createCommand("select to_char((select   damefechaminima_permisovacacion($idempleado,1)),'dd-mm-YYYY')")->queryScalar();
+         echo $fechaminima;
+    }
+    /**
+     * @param integer $_POST['idempleado'], id del empleado
+     * @param date $_POST['fecha']
+     * retorna array, con la informacion de horario, con las horas minimas y maximas que tiene en ese día
+     */
+    public function actionMostrarhorarioFecha()
+    {
+        $idempleado=$_POST['idempleado'];
+        $fecha=$_POST['fecha'];
+        $intervalohoras=Yii::app()->rrhh->createCommand("select hi,mi,hs,ms from dame_horai_horas($idempleado,'$fecha')")->queryAll();
+        $ver = Yii::app()->rrhh
+            ->createCommand("SELECT  dame_horario_empleado($idempleado,'$fecha'::date) as sms")
+            ->queryScalar();
+        $selladas=Yii::app()->rrhh
+            ->createCommand("select STRING_AGG (entrada|| (case when idtipoentrada=3 then ' <strong>*</strong> - 'else' - 'end) || salida||(case when idtiposalida=5 then ' <strong>*</strong> 'else' 'end) , ','       ORDER BY       id asc    ) from  entradasalida  where eliminado=false and idempleado=$idempleado and fecha='$fecha'::date and (idtipoentrada=3 or idtiposalida=5)")
+            ->queryScalar();
+        if( $selladas==null){
+            $selladas='';
+        }else
+            $selladas='<br><strong>SELLADAS OBS. : </strong>'.$selladas;
+         
+        $resp=Yii::app()->rrhh->createCommand("select fechalimite from damefecha_max_historialbancohoras($idempleado,'$fecha'::date) ")->queryAll();
+        $horario= '<div class="alert alert-info">'.$ver.$selladas.'</div>';
+        echo CJSON::encode( array('fechalimite'=> $resp[0]['fechalimite'], 'horario' =>$horario ,'hi'=>$intervalohoras[0]['hi'] ,'mi'=>$intervalohoras[0]['mi'],'hs'=>$intervalohoras[0]['hs'],'ms'=>$intervalohoras[0]['ms'] ));
+
+
+    }
+    /**
+     * @param date  $_POST['fecha'],fecha desde la cual queremos analizar
+     * @param integer $_POST['ide'], id del empleado
+     * @param integer  , id del permiso a cuenta de banco de horas(id=null en caso de creacion del permiso)
+     * retorna un array con la informacion de la cantidad de horas que va a tomar
+     */
+    public function actionDameFechaMax()
+    {
+
+        $fecha=date ("Y-m-d",strtotime( $_POST['fecha']));   
+        $ide=$_POST['ide'];
+        $id=$_POST['id'];
+        if($id==null )
+        $resp=Yii::app()->rrhh->createCommand("select cantidadhoras,fechalimite from damefecha_max_historialbancohoras($ide,'$fecha') ")->queryAll();
+        else
+        $resp=Yii::app()->rrhh->createCommand("select cantidadhoras,fechalimite from damefecha_max_historialbancohoras_update($id,'$fecha') ")->queryAll();
+       
+        echo CJSON::encode( array('horas' =>$resp[0]['cantidadhoras'] ,'fechalimite'=>$resp[0]['fechalimite'] ,'fechaminima'=>$fecha ));
+        
+    }
+    /**
+     * @param date $_POST['fechadesde'], fecha en la cual estamos analizando 
+     * @param integer $_POST['idempleado'], id del empleado
+     * @param integer $_POST['hi'], hora inicio del permiso
+     * @param integer $_POST['mi'], minuto inicio del permiso
+     * @param integer $_POST['hs'], hora fin del permiso
+     * @param integer $_POST['ms'],minuto fin del permiso
+     * @return la cantidad de horas por tomar segun el intervalo de hora seleccionado y segun el horario que tiene asignado el empleado
+     */
+    public function actionDameHorasPorTomar()
+    {
+        $desde=$_POST['fechadesde'];
+        $ide=$_POST['idempleado'];
+        $hi=$_POST['hi'];
+        $hs=$_POST['hs'];
+        $mi=$_POST['mi'];
+        $ms=$_POST['ms'];
+        if ($hi<10) {
+          $hi='0'.$hi;
+        }
+        if ($mi<10) {
+        $mi='0'.$mi;
+        }
+        if ($hs<10) {
+          $hs='0'.$hs;
+        }
+        if ($ms<10) {
+        $ms='0'.$ms;
+        }
+        $horai=$hi.':'.$mi;
+        $horas=$hs.':'.$ms;        
+        $horas=Yii::app()->rrhh->createCommand(" select dame_canthorasportomar( '$horai' ,  '$horas' ,$ide,'$desde') as horas")->queryScalar();
+        echo $horas;
+      return;
+
+
+    }
+    /**
+     * @param date $_POST['fechadesde'], fecha desde 
+     * @param date $_POST['fechahasta'], fecha hasta
+     * @param integer $_POST['idempleado'], id del empleado
+     * @return la cantidad de hora que va a tomar entre el intervalo de fechas segun el horario que tenga asignado el empleado
+     */
+    public function actionDameHorasPorTomarFechas()
+    {
+       $desde=$_POST['fechadesde'];
+       $hasta=$_POST['fechahasta'];
+       $idempleado=$_POST['idempleado'];
+       $horas=Yii::app()->rrhh->createCommand(" select dame_horas_por_tomar_bancohoras( $idempleado ,  '$desde' ,'$hasta') as horas")->queryScalar();
+       echo $horas;
+      return;
+
+
+    }
+   /**
+    * 
+    * @return interfaz para el registro de saldo en banco de horas
+    */
+    public function actionSaldohistorialbancohoras()
+    {
+        Yii::app()->getClientScript()->scriptMap=array('jquery.js'=>false, 'jquery.ui.js'=>false, 'jquery-ui.min.js'=>false);
+        
+        $model=new Historialbancohoras;
+        $listaempleados=  array();
+        if(isset($_POST['gridEmpleados'])){
+                if(Historialbancohoras::model()->registrarSaldoHistorialBancoHoras($_POST['Historialbancohoras']['fechadesde'],$_POST['Historialbancohoras']['descripcion'], $_POST['gridEmpleados'])){                       
+                    echo System::dataReturn('Creación exitosa!', array('id' => SeguridadModule::enc($model->id)));
+                    return;
+                } else {
+                    echo System::hasErrors('Revise los datos! ', $model);
+                return;
+                }
+        }
+
+        $this->renderPartial('saldohistorialbancohoras',array(
+            'model'=>$model,
+            'listaempleados'=>$listaempleados,
+        ), false, true);
+    }
+    /**
+     * 
+     * retorna el reporte de banco de hora creado recientemente
+     */
+    public function actionImprimirBanchohoraAlCrear() {
+         $idbancohora = Yii::app()->rrhh
+                ->createCommand("select id from general.historialbancohoras where eliminado=false order by id desc  limit 1")
+                ->queryScalar();
+
+         $re = new JasperReport('/reports/RRHH/ReporteSolicitudBancoHora', JasperReport::FORMAT_PDF, array(
+            'p_idbancohora' => $idbancohora
+        ));
+        $re->exec();
+        if ($re->getPages() > 0) {
+            echo $re->toPDF();
+        } else {
+            throw new CrugeException('El reporte no tiene páginas.', 483);
+        }   
+    }
+    /**
+     * 
+     * @param integer $id,id de la informacion que queremos el reporte
+     * @throws CrugeException
+     */
+    public function actionImprimirBanchohora($id) {
+         $idbancohora= SeguridadModule::dec($id);
+     
+         $re = new JasperReport('/reports/RRHH/ReporteSolicitudBancoHora', JasperReport::FORMAT_PDF, array(
+            'p_idbancohora' => $idbancohora
+        ));
+        $re->exec();
+        if ($re->getPages() > 0) {
+            echo $re->toPDF();
+        } else {
+            throw new CrugeException('El reporte no tiene páginas.', 483);
+        }   
+    }
+    /**
+     * Interfaz de registro grupal a cuenta de banco horas
+     */
+    public function actionRegistrogrupal() {
+        Yii::app()->getClientScript()->scriptMap=array('jquery.js'=>false, 'jquery.ui.js'=>false, 'jquery-ui.min.js'=>false);
+        $model=new Historialbancohoras;
+        $fechaminima=Yii::app()->rrhh->createCommand("   select to_char(fechahasta+1,'dd-mm-YYYY') from planilla where eliminado=false order by id desc  limit 1")->queryScalar();
+        if ($fechaminima==false){
+              $fechaminima=Yii::app()->rrhh->createCommand(" select '01-'||date_part('month',now())||'-'||date_part('year',now())")->queryScalar();
+        }
+         
+        if(isset($_POST['gridEmpleados'])){         
+            Historialbancohoras::model()->RegistroGrupal($_POST['gridEmpleados'],$_POST['Historialbancohoras']['fechadesde'],$_POST['Historialbancohoras']['dias'],$_POST['Historialbancohoras']['jornada'],$_POST['Historialbancohoras']['observacion']);
+                        
+                  
+        }
+        $listaempleados=array();
+        $this->renderPartial('registrogrupal',array(
+            'model'=>$model,
+            'listaempleados'=>$listaempleados,
+            'fechaminima'=>$fechaminima,
+        ), false, true);
+    }
+    /**
+     * @param date $_POST['fecha'],fecha desde la cual queremos analizar
+     * @param string $_POST['nombre'], nombre del formulario actual
+     * @param float $_POST['dias'],la cantidad de dias que se le quiere asignar a los empleados
+     * @param integer $_POST['jornada'], posibles valores 1=al inicio de la jornada  y 2= al final de la jornada
+     * @param integer $_POST['tipo'], opcion de clasificacion cuyos posibles valores son: 2=Femenino,3=Masculino y 4=todos
+     * 
+     * retorna el listado de empleados con observaciones si es que las tiene, segun las opciones seleccionada
+     */
+     public function actionListaempleadosregistrogrupal(){
+        Yii::app()->getClientScript()->scriptMap=array('jquery.js'=>false, 'jquery.ui.js'=>false, 'jquery-ui.min.js'=>false);
+        $fecha=$_POST['fecha'];
+        $nombre=$_POST['nombre'];
+        $dias=$_POST['dias'];
+        $jornada=$_POST['jornada'];
+        $tipo=$_POST['tipo'];
+        $cadena='';
+        $usuario= Yii::app()->user->getName();
+        $estado=false;
+        switch ($tipo){
+            case 2:{
+             $cadena="p.sexo='F' AND"; 
+      
+                    break;
+            }
+            case 3:{
+                 $cadena="p.sexo='M' AND"; 
+                    break;
+            }
+            case 4:{
+                    break;
+            }
+        default :
+            $cadena=""; 
+            $estado=true;
+             break;
+        }
+        
+            $listaempleados=  Yii::app()->rrhh->createCommand("select e.id,  p.nombrecompleto,(case when(select   public.observacion_diasdescontarpermiso(e.id, '$fecha', $dias, $jornada,'$usuario'))='' then 2 else 3 end)as tipo from general.persona p inner join general.empleado e on e.idpersona=p.id where $cadena  e.id in (select hee.idempleado from general.historialestadoempleado hee   where  hee.eliminado=false  and hee.activo=1 and hee.id in                 (select  (select max(id) from general.historialestadoempleado where eliminado=false and idempleado=e.id)  as idhistorial from general.empleado e where   e.eliminado=false)) and e.id in  (select mp.idempleado from  movimientopersonal mp   where  mp.eliminado=false  and mp.id in  (select  (select max(mp1.id) from movimientopersonal mp1 inner join contrato c on c.id=mp1.idcontrato inner join general.tipocontrato tc on tc.id=c.idtipocontrato where mp1.eliminado=false and tc.generarcc=true  and idempleado=e.id) 
+            as idmp from general.empleado e where   e.eliminado=false)) order by p.nombrecompleto asc  ")->queryAll();
+            $this->renderPartial('_listaempleados',array(
+            'nombre'=>$nombre,
+            'listaempleados'=>$listaempleados,
+            'estado'=>$estado,
+           
+        ), false, true);
+        
+      
+        
+    }
+}
