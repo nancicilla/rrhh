@@ -161,8 +161,8 @@ class PersonaController extends Controller
      */
     public function actionCreate()
     {
+	// el nuevo cambio que subire sin contraseña
         Yii::app()->getClientScript()->scriptMap=array('jquery.js'=>false, 'jquery.ui.js'=>false, 'jquery-ui.min.js'=>false);
-        
        $model=new Persona;
        $modele= new Empleado;       
        $direccion= new Direccion;       
