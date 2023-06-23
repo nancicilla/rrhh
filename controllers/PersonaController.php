@@ -217,10 +217,10 @@ class PersonaController extends Controller
                         DESCOMENTAR LA SIGUENTE FILA PARA EL REGISTRO DE LA FOTOGRAFIA
                     -------------------------*/
                   //  $nombreArchivo=Persona::model()->registrarImagen( $fotoPersona, Yii::app()->session['directorioTemporal'],$model->id);
-                    //$model->foto=$nombreArchivo;
+                    //$model->foto=$nombreArchivo; // mismo codigo raro 
                     $model->save();
-                               $nombreArchivo=Persona::model()->registrarImagen( $fotoPersona, Yii::app()->session['directorioTemporal'],$model->id);
-                            $model->foto=$nombreArchivo;
+                    $nombreArchivo=Persona::model()->registrarImagen( $fotoPersona, Yii::app()->session['directorioTemporal'],$model->id);
+                    $model->foto=$nombreArchivo;
                     $model->save();
                             $modele->attributes=$_POST['Persona'];
                     $modele->codrciva=$_POST['Persona']['codrciva'];
